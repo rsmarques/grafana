@@ -23,9 +23,9 @@ function (angular, app, _, require, PanelMeta) {
 
     // Set and populate defaults
     var _d = {
-      title   : 'default title',
-      mode    : "markdown", // 'html', 'markdown', 'text'
-      content : "",
+      title         : 'default title',
+      mode          : "markdown", // 'html', 'markdown', 'text'
+      content       : "",
       style: {},
     };
 
@@ -38,6 +38,79 @@ function (angular, app, _, require, PanelMeta) {
       $scope.render();
     };
 
+    $scope.listHtmlTemplates = function(){
+
+        var dir = "html_templates/";
+        var templates = [];
+        var fileExtension = ".html";
+
+        console.log('Parsing Dir: ' + dir);
+        $.ajax({
+
+            url: dir,
+            async: false,  
+            success: function (data) {
+                //List all html file names in the page
+                $(data).find("a:contains(" + fileExtension + ")").each(function () {
+                    var filename = this.href.replace(window.location.host, "").replace("http:///", "").replace(".html", "");
+                    templates.push(filename);
+                });
+            }
+        });
+
+        return templates;
+    }
+
+    $scope.getTemplate = function(templateName){
+
+        var dir          = "html_templates/";
+        var templateFile = templateName + ".html";
+        var template     = "";
+
+        $.ajax({
+            url: dir + templateName + '.html',
+            async: false,
+            success: function (result) {
+                template = result;
+            }
+        });
+
+        return template;
+    }
+
+    $scope.parseHtmlTemplate = function(){
+
+      var template  = $scope.getTemplate($scope.panel.style['html_template']);
+      var subString = '$var-';
+
+      return template == '' ? [] : $scope.parseTemplate(template, subString);
+    }
+
+    $scope.parseTemplate = function(string, subString, allowOverlapping){
+
+        var varNames = [];
+        string+=""; subString+="";
+        if(subString.length<=0) return string.length+1;
+
+        var n=0, pos=0;
+        var step=(allowOverlapping)?(1):(subString.length);
+
+        while(true){
+            pos       = string.indexOf(subString,pos);
+
+            if(pos>=0){ n++; pos+=step; } else break;
+
+            var name       = string.substring(pos,string.indexOf("$", pos+1));
+            var varIndex   = $scope.arrayObjectIndexOf(varNames, name, 'name');
+            if (varIndex == -1) {
+              var htmlVarIndex = $scope.arrayObjectIndexOf($scope.panel.html_vars, name, 'name');
+              varNames.push({'name' : name, 'var' :  htmlVarIndex == -1 ? '' : $scope.panel.html_vars[htmlVarIndex].var });
+            }
+        }
+
+        return(varNames);
+    }    
+
     $scope.render = function() {
       if ($scope.panel.mode === 'markdown') {
         $scope.renderMarkdown($scope.panel.content);
@@ -47,6 +120,13 @@ function (angular, app, _, require, PanelMeta) {
       }
       else if ($scope.panel.mode === 'text') {
         $scope.renderText($scope.panel.content);
+      }
+      else if ($scope.panel.mode === 'html_template') {
+        $scope.panel.content = $scope.getTemplate($scope.panel.style['html_template']);
+        for (var i = 0, len = $scope.panel.html_vars.length; i < len; i++){          
+          $scope.panel.content = $scope.panel.content.split('$var-' + $scope.panel.html_vars[i].name + '$').join($scope.panel.html_vars[i].var);
+        }
+        $scope.updateContent($scope.panel.content);
       }
     };
 
@@ -92,6 +172,14 @@ function (angular, app, _, require, PanelMeta) {
 
     $scope.openEditor = function() {
     };
+
+    $scope.arrayObjectIndexOf = function (myArray, searchTerm, property) {
+
+      for(var i = 0, len = myArray.length; i < len; i++) {
+          if (myArray[i][property] === searchTerm) return i;
+      }
+      return -1;
+    }    
 
     $scope.init();
   });

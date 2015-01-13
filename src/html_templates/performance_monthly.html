@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h4>Performance (Monthly): $var-title$</h4>
+
+<p id="performance_monthly.cur_month"></p>
+<p id="performance_monthly.last_month"></p>
+<p id="performance_monthly.performance"></p>
+
+<script>
+
+var performance = ((($var-currentMonth$ - $var-lastMonth$) / $var-lastMonth$) * 100).toFixed(2);
+
+document.getElementById("performance_monthly.cur_month").innerHTML = 'Current Month: ' + $var-currentMonth$;
+document.getElementById("performance_monthly.last_month").innerHTML = 'Last Month: ' + $var-lastMonth$;
+document.getElementById("performance_monthly.performance").innerHTML = 'Performance: ' + performance + ' %';
+
+</script>
+
+</body>
+</html>
