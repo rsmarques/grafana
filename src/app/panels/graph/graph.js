@@ -132,14 +132,16 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             return;
           }
 
-          var panel = scope.panel;
-          var stack = panel.stack ? true : null;
+          var panel      = scope.panel;
+          var stack      = panel.stack      ? true : null;
+          var cumulative = panel.cumulative ? true : null;
 
           // Populate element
           var options = {
             hooks: { draw: [updateLegendValues] },
             legend: { show: false },
             series: {
+              cumulative: panel.cumulative,
               stackpercent: panel.stack ? panel.percentage : false,
               stack: panel.percentage ? null : stack,
               lines:  {
@@ -188,6 +190,17 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             var series = data[i];
             series.applySeriesOverrides(panel.seriesOverrides);
             series.data = series.getFlotPairs(panel.nullPointMode, panel.y_formats);
+
+            // Points are aggregated cumulatively if defined
+            if (options.series.cumulative && series.cumulative != false){
+              var count = 0;
+              series.data = _.sortBy(series.data, function(seriesData) { return seriesData[0]; });
+
+              for (var j = 0; j < series.data.length; j++){
+                count += series.data[j][1];
+                series.data[j][1] = count;
+              }
+            }
 
             // if hidden remove points and disable stack
             if (scope.hiddenSeries[series.alias]) {
@@ -385,6 +398,7 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           url += '&height=' + elem.css('height').replace('px', '');
           url += '&bgcolor=1f1f1f'; // @grayDarker & @grafanaPanelBackground
           url += '&fgcolor=BBBFC2'; // @textColor & @grayLighter
+          url += scope.panel.cumulative ? '&aggregationMode=cumulative' : '';
           url += scope.panel.stack ? '&areaMode=stacked' : '';
           url += scope.panel.fill !== 0 ? ('&areaAlpha=' + (scope.panel.fill/10).toFixed(1)) : '';
           url += scope.panel.linewidth !== 0 ? '&lineWidth=' + scope.panel.linewidth : '';

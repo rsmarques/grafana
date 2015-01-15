@@ -65,6 +65,8 @@ function (angular, app, $, _, kbn, moment, TimeSeries, PanelMeta) {
       pointradius   : 5,
       // show hide bars
       bars          : false,
+      // enable/disable cumulative mode
+      cumulative    : false,
       // enable/disable stacking
       stack         : false,
       // stack percentage mode

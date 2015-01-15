@@ -36,6 +36,7 @@ function (_, kbn) {
     this.bars = {};
     this.yaxis = 1;
     this.zindex = 0;
+    delete this.cumulative;
     delete this.stack;
 
     for (var i = 0; i < overrides.length; i++) {
@@ -47,6 +48,7 @@ function (_, kbn) {
       if (override.points !== void 0) { this.points.show = override.points; }
       if (override.bars !== void 0) { this.bars.show = override.bars; }
       if (override.fill !== void 0) { this.lines.fill = translateFillOption(override.fill); }
+      if (override.cumulative !== void 0) { this.cumulative = override.cumulative; }
       if (override.stack !== void 0) { this.stack = override.stack; }
       if (override.linewidth !== void 0) { this.lines.lineWidth = override.linewidth; }
       if (override.pointradius !== void 0) { this.points.radius = override.pointradius; }
