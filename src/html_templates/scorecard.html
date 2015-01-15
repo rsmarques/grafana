@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+  .circle{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: yellow;
+  }
+</style>
+</head>
+<body>
+
+<!--h4>Title</h4-->
+
+<table class="scorecard" align="left">
+  <!--tr>
+    <td>Measure: </td>
+    <td>$var-measure$</td>
+  </tr-->
+  <tr>
+    <td>Objective: </td>
+    <td>$var-objective$</td>
+   
+    <td>Realized: </td>
+    <td>$var-realized$</td>
+   
+    <td>On Track: </td>
+    <td align="right">
+      <div id="$panel.id$.onTrack" class="circle" />
+    </td>
+  </tr>
+</table>
+
+<script>
+
+var logic     = $var-compare$;
+var objective = $var-objective$;
+var realized  = $var-realized$;
+
+
+if (eval(realized + logic + objective)){
+  document.getElementById("$panel.id$.onTrack").style.backgroundColor = "green";
+}
+else{
+  document.getElementById("$panel.id$.onTrack").style.backgroundColor = "red";
+}
+
+</script>
+
+</body>
+</html>

@@ -7,14 +7,16 @@
 <p id="performance_weekly.cur_week"></p>
 <p id="performance_weekly.last_week"></p>
 <p id="performance_weekly.performance"></p>
-
 <script>
 
 var performance = ((($var-currentWeek$ - $var-lastWeek$) / $var-lastWeek$) * 100).toFixed(2);
 
-document.getElementById("performance_weekly.cur_week").innerHTML = 'Current Week: ' + $var-currentWeek$;
-document.getElementById("performance_weekly.last_week").innerHTML = 'Last Week: ' + $var-lastWeek$;
+document.getElementById("performance_weekly.cur_week").innerHTML    = 'Current Week: ' + $var-currentWeek$;
+document.getElementById("performance_weekly.last_week").innerHTML   = 'Last Week: ' + $var-lastWeek$;
 document.getElementById("performance_weekly.performance").innerHTML = 'Performance: ' + performance + ' %';
+
+// if (performance >= 0) document.getElementById("performance_weekly.performance").style.color = "green";
+// else document.getElementById("performance_weekly.performance").style.color = "red";
 
 </script>
 

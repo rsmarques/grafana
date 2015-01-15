@@ -44,7 +44,6 @@ function (angular, app, _, require, PanelMeta) {
         var templates = [];
         var fileExtension = ".html";
 
-        console.log('Parsing Dir: ' + dir);
         $.ajax({
 
             url: dir,
@@ -122,7 +121,10 @@ function (angular, app, _, require, PanelMeta) {
         $scope.renderText($scope.panel.content);
       }
       else if ($scope.panel.mode === 'html_template') {
+
         $scope.panel.content = $scope.getTemplate($scope.panel.style['html_template']);
+        $scope.panel.content = $scope.panel.content.split('$panel.id$').join($scope.panel.id);
+
         for (var i = 0, len = $scope.panel.html_vars.length; i < len; i++){          
           $scope.panel.content = $scope.panel.content.split('$var-' + $scope.panel.html_vars[i].name + '$').join($scope.panel.html_vars[i].var);
         }
