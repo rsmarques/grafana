@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h4 id="$panel.id$.title"></h4>
+
+<p id="$panel.id$.current"></p>
+<p id="$panel.id$.last"></p>
+<p id="$panel.id$.performance"></p>
+
+<script>
+
+console.log($var-current$);
+
+var performance = ((($var-current$ - $var-last$) / $var-last$) * 100).toFixed(2);
+
+document.getElementById("$panel.id$.title").innerHTML       = 'Performance (' + $var-period$ + '): ' + $var-title$;
+document.getElementById("$panel.id$.current").innerHTML     = 'Current ' + $var-period$ + ': ' + $var-current$;
+document.getElementById("$panel.id$.last").innerHTML        = 'Last '    + $var-period$ + ': ' + $var-last$;
+document.getElementById("$panel.id$.performance").innerHTML = 'Performance: ' + performance + ' %';
+
+if (performance >= 0) document.getElementById("$panel.id$.performance").style.color = "green";
+else document.getElementById("$panel.id$.performance").style.color = "red";
+
+</script>
+
+</body>
+</html>
