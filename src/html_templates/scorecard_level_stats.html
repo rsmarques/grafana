@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.levelStats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.levelStats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+</style>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Users:</td>
+    <td id = "$panel.id$.count" />
+  <tr>
+    <td>Average Level: </td>
+    <td id = "$panel.id$.average" />
+  </tr>
+  <tr>
+    <td>Max Level: </td>
+    <td id = "$panel.id$.max" />
+  </tr>
+</table>
+
+
+<p>--------------</p>
+
+<table id = "$panel.id$.levelStats" class="levelStats" align="center">
+  <caption>Number of Users by Level</caption>
+  <tr>
+    <th>Level</th>
+    <th>Users</th>
+  </tr>
+
+<script>
+
+function occurrences(array){
+
+  var occs = {};
+
+  for(var i = 0; i< array.length; i++) {
+      var n   = array[i];
+      occs[n] = occs[n] ? occs[n] + 1 : 1;
+  }
+  return occs;
+}
+
+var userLevels = $var-userLevels$.sort(function(a, b){return a-b});;
+
+var sum   = userLevels.reduce(function(a, b) { return a + b });
+var avg   = (sum / userLevels.length).toFixed(2);
+var max   = Math.max.apply(Math, userLevels);
+var count = userLevels.length;
+var occs  = occurrences(userLevels);
+
+document.getElementById("$panel.id$.average").innerHTML = avg;
+document.getElementById("$panel.id$.count").innerHTML   = count;
+document.getElementById("$panel.id$.max").innerHTML     = max;
+
+var table = document.getElementById("$panel.id$.levelStats"); 
+
+for (var i=1; i <= max; i++){
+
+    var level = i;
+    var n     = occs[i] > 0 ? occs[i] : 0;
+    var row   = table.insertRow(i);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    cell1.innerHTML = level;
+    cell2.innerHTML = n + ' (' + ((n/count) * 100).toFixed(1) + ' %)';
+}
+
+</script>
+
+</body>
+</html>

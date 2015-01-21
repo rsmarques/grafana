@@ -121,7 +121,7 @@ function (angular, _, kbn) {
 
     this.metricNamesToVariableValues = function(variable, metricNames) {
       var regex, options, i, matches;
-      options = {}; // use object hash to remove duplicates
+      options = []; // remove duplicates feature removed
 
       if (variable.regex) {
         regex = kbn.stringToJsRegex(templateSrv.replace(variable.regex));
@@ -138,10 +138,10 @@ function (angular, _, kbn) {
           }
         }
 
-        options[value] = value;
+        options.push(value.toString());
       }
 
-      return _.map(_.keys(options), function(key) {
+      return _.map(options, function(key) {
         return { text: key, value: key };
       });
     };
@@ -149,6 +149,11 @@ function (angular, _, kbn) {
     this.addAllOption = function(variable) {
       var allValue = '';
       switch(variable.allFormat) {
+      case 'javascript':
+        allValue = '[';
+        allValue += _.pluck(variable.options, 'text').join(',');
+        allValue += ']';
+        break;
       case 'wildcard':
         allValue = '*';
         break;

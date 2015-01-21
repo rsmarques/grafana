@@ -117,7 +117,7 @@
 							<editor-opt-bool text="All option" model="current.includeAll" change="runQuery()"></editor-opt-bool>
 							<div class="editor-option" ng-show="current.includeAll">
 								<label class="small">All format</label>
-								<select class="input-medium" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in ['glob', 'wildcard', 'regex wildcard', 'regex values']"></select>
+								<select class="input-medium" ng-model="current.allFormat" ng-change="runQuery()" ng-options="f for f in ['glob', 'wildcard', 'regex wildcard', 'regex values', 'javascript']"></select>
 							</div>
 							<div class="editor-option" ng-show="current.includeAll">
 								<label class="small">All value</label>
