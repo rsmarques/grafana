@@ -132,15 +132,17 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             return;
           }
 
-          var panel      = scope.panel;
-          var stack      = panel.stack      ? true : null;
-          var cumulative = panel.cumulative ? true : null;
+          var panel       = scope.panel;
+          var stack       = panel.stack       ? true : null;
+          var cumulative  = panel.cumulative  ? true : null;
+          var performance = panel.performance ? true : null;
 
           // Populate element
           var options = {
             hooks: { draw: [updateLegendValues] },
             legend: { show: false },
             series: {
+              performance: panel.performance,
               cumulative: panel.cumulative,
               stackpercent: panel.stack ? panel.percentage : false,
               stack: panel.percentage ? null : stack,
@@ -199,6 +201,21 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
               for (var j = 0; j < series.data.length; j++){
                 count += series.data[j][1];
                 series.data[j][1] = count;
+              }
+            }
+
+            // Points are changed to performance mode if defined
+            if (options.series.performance && series.performance != false){
+              series.data = _.sortBy(series.data, function(seriesData) { return seriesData[0]; });
+
+              var previous = series.data[0][1];
+              series.data[0][1] = 0;
+
+              for (var j = 1; j < series.data.length; j++){
+                var aux = series.data[j][1];
+                console.log('Previous: ' + previous + '; Current: ' + series.data[j][1]);
+                series.data[j][1] = previous != 0 ? (((series.data[j][1] - previous) / previous) * 100) : 0;
+                previous = aux;
               }
             }
 
@@ -399,6 +416,7 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           url += '&bgcolor=1f1f1f'; // @grayDarker & @grafanaPanelBackground
           url += '&fgcolor=BBBFC2'; // @textColor & @grayLighter
           url += scope.panel.cumulative ? '&aggregationMode=cumulative' : '';
+          url += scope.panel.performance ? '&performanceMode=active' : '';
           url += scope.panel.stack ? '&areaMode=stacked' : '';
           url += scope.panel.fill !== 0 ? ('&areaAlpha=' + (scope.panel.fill/10).toFixed(1)) : '';
           url += scope.panel.linewidth !== 0 ? '&lineWidth=' + scope.panel.linewidth : '';
