@@ -80,6 +80,7 @@ define([
     $scope.addOverrideOption('Points', 'points', [true, false]);
     $scope.addOverrideOption('Points Radius', 'pointradius', [1,2,3,4,5]);
     $scope.addOverrideOption('Cumulative', 'cumulative', [true, false]);
+    $scope.addOverrideOption('Relative', 'relative', [true, false]);
     $scope.addOverrideOption('Stack', 'stack', [true, false, 2, 3, 4, 5]);
     $scope.addOverrideOption('Performance', 'performance', [true, false]);
     $scope.addOverrideOption('Y-axis', 'yaxis', [1, 2]);

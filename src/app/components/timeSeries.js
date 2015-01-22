@@ -39,6 +39,7 @@ function (_, kbn) {
     delete this.cumulative;
     delete this.stack;
     delete this.performance;
+    delete this.relative;
 
     for (var i = 0; i < overrides.length; i++) {
       var override = overrides[i];
@@ -52,6 +53,7 @@ function (_, kbn) {
       if (override.cumulative !== void 0) { this.cumulative = override.cumulative; }
       if (override.stack !== void 0) { this.stack = override.stack; }
       if (override.performance !== void 0) { this.performance = override.performance; }
+      if (override.relative !== void 0) { this.relative = override.relative; }
       if (override.linewidth !== void 0) { this.lines.lineWidth = override.linewidth; }
       if (override.pointradius !== void 0) { this.points.radius = override.pointradius; }
       if (override.steppedLine !== void 0) { this.lines.steps = override.steppedLine; }

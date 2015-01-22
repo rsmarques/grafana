@@ -65,6 +65,8 @@ function (angular, app, $, _, kbn, moment, TimeSeries, PanelMeta) {
       pointradius   : 5,
       // show hide bars
       bars          : false,
+      // enable/disable relative mode
+      relative   : false,
       // enable/disable performance mode
       performance   : false,
       // enable/disable cumulative mode

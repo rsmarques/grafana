@@ -136,12 +136,14 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           var stack       = panel.stack       ? true : null;
           var cumulative  = panel.cumulative  ? true : null;
           var performance = panel.performance ? true : null;
+          var relative    = panel.relative    ? true : null;
 
           // Populate element
           var options = {
             hooks: { draw: [updateLegendValues] },
             legend: { show: false },
             series: {
+              relative: relative,
               performance: panel.performance,
               cumulative: panel.cumulative,
               stackpercent: panel.stack ? panel.percentage : false,
@@ -213,9 +215,19 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
 
               for (var j = 1; j < series.data.length; j++){
                 var aux = series.data[j][1];
-                console.log('Previous: ' + previous + '; Current: ' + series.data[j][1]);
                 series.data[j][1] = previous != 0 ? (((series.data[j][1] - previous) / previous) * 100) : 0;
                 previous = aux;
+              }
+            }
+
+            // Points are changed to 0-1 scale if relative mode if defined
+            if (options.series.relative && series.relative != false){
+              series.data = _.sortBy(series.data, function(seriesData) { return seriesData[0]; });
+
+              var max = getMaxFromSeries(series.data);
+
+              for (var j = 0; j < series.data.length; j++){
+                series.data[j][1] /= max;
               }
             }
 
@@ -388,6 +400,17 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           };
         }
 
+        function getMaxFromSeries(series) {
+
+          var max = 0;
+
+          for (var i = 0; i < series.length; i++){
+            max = Math.abs(series[i][1]) > max ? Math.abs(series[i][1]) : max;
+          }
+
+          return max;
+        }
+
         function time_format(interval, ticks, min, max) {
           if (min && max && ticks) {
             var secPerTick = ((max - min) / ticks) / 1000;
@@ -416,8 +439,9 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           url += '&bgcolor=1f1f1f'; // @grayDarker & @grafanaPanelBackground
           url += '&fgcolor=BBBFC2'; // @textColor & @grayLighter
           url += scope.panel.cumulative ? '&aggregationMode=cumulative' : '';
-          url += scope.panel.performance ? '&performanceMode=active' : '';
+          url += scope.panel.performance ? '&performanceMode=true' : '';
           url += scope.panel.stack ? '&areaMode=stacked' : '';
+          url += scope.panel.relative ? '&relativeMode=true' : '';
           url += scope.panel.fill !== 0 ? ('&areaAlpha=' + (scope.panel.fill/10).toFixed(1)) : '';
           url += scope.panel.linewidth !== 0 ? '&lineWidth=' + scope.panel.linewidth : '';
           url += scope.panel.legend.show ? '&hideLegend=false' : '&hideLegend=true';
