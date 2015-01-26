@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.profitStats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.profitStats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+</style>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Sells:</td>
+    <td id = "$panel.id$.count" />
+  <tr>
+    <td>Average Profit: </td>
+    <td id = "$panel.id$.average" />
+  </tr>
+</table>
+
+
+<p>--------------</p>
+
+<table id = "$panel.id$.profitStats" class="profitStats" align="center">
+  <caption>Average Profit by Level</caption>
+  <tr>
+    <th>Level</th>
+    <th>Profit</th>
+  </tr>
+
+<script>
+
+var profitAvg  = $var-profitAvg$;
+var sellAvg    = $var-sellValueAvg$;
+var sellCount  = $var-sellCount$;
+
+document.getElementById("$panel.id$.average").innerHTML = profitAvg + ' (' + ((profitAvg / sellAvg) * 100).toFixed(2) + '%)';
+document.getElementById("$panel.id$.count").innerHTML   = sellCount;
+
+var levels          = $var-levels$;
+var profitByLevel   = $var-profitByLevel$;
+var sellAvgByLevel  = $var-sellAvgByLevel$;
+
+var table           = document.getElementById("$panel.id$.profitStats");
+
+for (var i=0; i < profitByLevel.length; i++){
+
+    var level = levels[i];
+    var row   = table.insertRow(i + 1);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    cell1.innerHTML = level;
+    cell2.innerHTML = profitByLevel[i] + ' (' + ((profitByLevel[i] / sellAvgByLevel[i]) * 100).toFixed(1) + '%)';
+}
+
+</script>
+
+</body>
+</html>
