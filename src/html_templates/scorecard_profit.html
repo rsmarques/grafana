@@ -63,7 +63,7 @@ var profitAvg  = $var-profitAvg$;
 var sellAvg    = $var-sellValueAvg$;
 var sellCount  = $var-sellCount$;
 
-document.getElementById("$panel.id$.average").innerHTML = profitAvg + ' (' + ((profitAvg / sellAvg) * 100).toFixed(2) + '%)';
+document.getElementById("$panel.id$.average").innerHTML = profitAvg.toFixed(1) + ' (' + ((profitAvg / sellAvg) * 100).toFixed(1) + '%)';
 document.getElementById("$panel.id$.count").innerHTML   = sellCount;
 
 var levels          = $var-levels$;
@@ -79,7 +79,7 @@ for (var i=0; i < profitByLevel.length; i++){
     var cell1 = row.insertCell(0);
     var cell2 = row.insertCell(1);
     cell1.innerHTML = level;
-    cell2.innerHTML = profitByLevel[i] + ' (' + ((profitByLevel[i] / sellAvgByLevel[i]) * 100).toFixed(1) + '%)';
+    cell2.innerHTML = profitByLevel[i].toFixed(1) + ' (' + ((profitByLevel[i] / sellAvgByLevel[i]) * 100).toFixed(1) + '%)';
 }
 
 </script>
