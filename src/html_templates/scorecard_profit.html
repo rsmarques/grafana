@@ -54,6 +54,7 @@
   <caption>Average Profit by Level</caption>
   <tr>
     <th>Level</th>
+    <th>Total Sells</th>
     <th>Profit</th>
   </tr>
 
@@ -66,9 +67,10 @@ var sellCount  = $var-sellCount$;
 document.getElementById("$panel.id$.average").innerHTML = profitAvg.toFixed(1) + ' (' + ((profitAvg / sellAvg) * 100).toFixed(1) + '%)';
 document.getElementById("$panel.id$.count").innerHTML   = sellCount;
 
-var levels          = $var-levels$;
-var profitByLevel   = $var-profitByLevel$;
-var sellAvgByLevel  = $var-sellAvgByLevel$;
+var levels           = $var-levels$;
+var profitByLevel    = $var-profitByLevel$;
+var sellAvgByLevel   = $var-sellAvgByLevel$;
+var sellCountByLevel = $var-sellCountByLevel$;
 
 var table           = document.getElementById("$panel.id$.profitStats");
 
@@ -78,8 +80,10 @@ for (var i=0; i < profitByLevel.length; i++){
     var row   = table.insertRow(i + 1);
     var cell1 = row.insertCell(0);
     var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
     cell1.innerHTML = level;
-    cell2.innerHTML = profitByLevel[i].toFixed(1) + ' (' + ((profitByLevel[i] / sellAvgByLevel[i]) * 100).toFixed(1) + '%)';
+    cell2.innerHTML = sellCountByLevel[i];
+    cell3.innerHTML = profitByLevel[i].toFixed(1) + ' (' + ((profitByLevel[i] / sellAvgByLevel[i]) * 100).toFixed(1) + '%)';
 }
 
 </script>
