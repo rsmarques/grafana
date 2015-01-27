@@ -42,6 +42,10 @@
     <td>Total $var-eventType$ completed:</td>
     <td id = "$panel.id$.count" />
   <tr>
+    <td>Average Challenges by User: </td>
+    <td id = "$panel.id$.averageByUser" />
+  </tr>    
+  <tr>
     <td>Average Points: </td>
     <td id = "$panel.id$.average" />
   </tr>
@@ -61,10 +65,12 @@
 <script>
 
 var pointsAvg     = $var-pointsAvg$;
+var userCount     = $var-userCount$;
 var eventCount    = $var-eventCount$;
 
-document.getElementById("$panel.id$.average").innerHTML = pointsAvg
-document.getElementById("$panel.id$.count").innerHTML   = eventCount;
+document.getElementById("$panel.id$.average").innerHTML         = pointsAvg;
+document.getElementById("$panel.id$.averageByUser").innerHTML   = (eventCount / userCount).toFixed(1);
+document.getElementById("$panel.id$.count").innerHTML           = eventCount;
 
 var levels              = $var-levels$;
 var pointsByLevel       = $var-pointsByLevel$;
