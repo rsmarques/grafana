@@ -30,6 +30,9 @@
     font-size: 14px;
     text-align: center;
     border-style: solid;
+  } 
+  table.eventStats th {
+    padding: 7px;
   }
 </style>
 </head>
@@ -59,6 +62,7 @@
   <tr>
     <th>Level</th>
     <th>Total Missions</th>
+    <th>By User</th>
     <th>Points</th>
   </tr>
 
@@ -68,13 +72,14 @@ var pointsAvg     = $var-pointsAvg$;
 var userCount     = $var-userCount$;
 var eventCount    = $var-eventCount$;
 
-document.getElementById("$panel.id$.average").innerHTML         = pointsAvg;
+document.getElementById("$panel.id$.average").innerHTML         = pointsAvg.toFixed(1);
 document.getElementById("$panel.id$.averageByUser").innerHTML   = (eventCount / userCount).toFixed(1);
 document.getElementById("$panel.id$.count").innerHTML           = eventCount;
 
 var levels              = $var-levels$;
 var pointsByLevel       = $var-pointsByLevel$;
 var eventCountByLevel   = $var-eventCountByLevel$;
+var userCountByLevel    = $var-userCountByLevel$;
 
 var table               = document.getElementById("$panel.id$.eventStats");
 
@@ -85,9 +90,11 @@ for (var i=0; i < pointsByLevel.length; i++){
     var cell1 = row.insertCell(0);
     var cell2 = row.insertCell(1);
     var cell3 = row.insertCell(2);
+    var cell4 = row.insertCell(3);
     cell1.innerHTML = level;
     cell2.innerHTML = eventCountByLevel[i];
-    cell3.innerHTML = pointsByLevel[i];
+    cell3.innerHTML = (eventCountByLevel[i] / userCountByLevel[i]).toFixed(1);
+    cell4.innerHTML = pointsByLevel[i].toFixed(1);
 }
 
 </script>
