@@ -84,7 +84,7 @@ for (var i = 0; i < songCountByUser.length; i++){
 
   totalSongCount         += songCountByUser[i] - 1;
   totalSongDistinctCount += songDistinctCountByUser[i] - 1;
-  userSongAvg.push((songDistinctCountByUser[i] - 1)/(songCountByUser[i] - 1));
+  if (songCountByUser[i] > 1) userSongAvg.push((songDistinctCountByUser[i] - 1)/(songCountByUser[i] - 1));
 
 }
 
