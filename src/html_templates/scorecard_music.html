@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.levelStats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.levelStats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+</style>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Plays:</td>
+    <td id = "$panel.id$.hit_play_count" />
+  <tr>
+    <td>Total Complete Listens: </td>
+    <td id = "$panel.id$.listen_complete_count" />
+  </tr>
+  <tr>
+    <td>% of songs first listened (Global): </td>
+    <td id = "$panel.id$.new_music_global" />
+  </tr>
+  <tr>
+    <td>% of songs first listened (by User): </td>
+    <td id = "$panel.id$.nem_music_user" />
+  </tr>
+</table>
+
+<script>
+
+function average(array){
+
+  var total = 0;
+
+  for(var i = 0; i < array.length; i++) {
+      total += array[i];
+  }
+
+  return (total/array.length);
+}
+
+var hitPlayCount          = $var-hitPlayCount$;
+var listenCompleteCount   = $var-listenCompleteCount$;
+
+document.getElementById("$panel.id$.hit_play_count").innerHTML          = hitPlayCount;
+document.getElementById("$panel.id$.listen_complete_count").innerHTML   = listenCompleteCount + ' (' + ((listenCompleteCount / hitPlayCount) * 100).toFixed(1) + ' %)';
+
+var songCountByUser              = $var-songCountByUser$;
+var songDistinctCountByUser      = $var-songDistinctCountByUser$;
+var totalSongCount               = 0;
+var totalSongDistinctCount       = 0;
+var userSongAvg                  = [];
+
+for (var i = 0; i < songCountByUser.length; i++){
+
+  totalSongCount         += songCountByUser[i] - 1;
+  totalSongDistinctCount += songDistinctCountByUser[i] - 1;
+  userSongAvg.push((songDistinctCountByUser[i] - 1)/(songCountByUser[i] - 1));
+
+}
+
+userAvg  = (average(userSongAvg) * 100).toFixed(1);
+totalAvg = ((totalSongDistinctCount / totalSongCount) * 100).toFixed(1);
+
+document.getElementById("$panel.id$.new_music_global").innerHTML     = totalAvg + ' %';
+document.getElementById("$panel.id$.nem_music_user").innerHTML       = userAvg  + ' %';
+
+</script>
+
+</body>
+</html>
