@@ -154,6 +154,11 @@ function (angular, _, kbn) {
         allValue += _.pluck(variable.options, 'text').join(',');
         allValue += ']';
         break;
+      case 'javascript (string)':
+        allValue = "['";
+        allValue += _.pluck(variable.options, 'text').join("','");
+        allValue += "']";
+        break;        
       case 'wildcard':
         allValue = '*';
         break;
