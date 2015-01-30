@@ -109,9 +109,9 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           }
         }
 
-        function updateLegendValues(plot) {
+        function drawHook(plot) {
+          // Update legend values
           var yaxis = plot.getYAxes();
-
           for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var axis = yaxis[series.yaxis - 1];
@@ -124,6 +124,29 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             series.updateLegendValues(formater, tickDecimals, axis.scaledDecimals + 2);
             if(!scope.$$phase) { scope.$digest(); }
           }
+
+          // add left axis labels
+          if (scope.panel.leftYAxisLabel) {
+            var yaxisLabel = $("<div class='axisLabel left-yaxis-label'></div>")
+              .text(scope.panel.leftYAxisLabel)
+              .appendTo(elem);
+
+            yaxisLabel.css("margin-top", yaxisLabel.width() / 2);
+          }
+
+          // add right axis labels
+          if (scope.panel.rightYAxisLabel) {
+            var rightLabel = $("<div class='axisLabel right-yaxis-label'></div>")
+              .text(scope.panel.rightYAxisLabel)
+              .appendTo(elem);
+
+            rightLabel.css("margin-top", rightLabel.width() / 2);
+          }
+        }
+
+        function processOffsetHook(plot, gridMargin) {
+          if (scope.panel.leftYAxisLabel) { gridMargin.left = 20; }
+          if (scope.panel.rightYAxisLabel) { gridMargin.right = 20; }
         }
 
         // Function for rendering panel
@@ -140,7 +163,10 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
 
           // Populate element
           var options = {
-            hooks: { draw: [updateLegendValues] },
+            hooks: {
+              draw: [drawHook],
+              processOffset: [processOffsetHook],
+            },
             legend: { show: false },
             series: {
               relative: relative,
@@ -179,7 +205,8 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
               backgroundColor: null,
               borderWidth: 0,
               hoverable: true,
-              color: '#c8c8c8'
+              color: '#c8c8c8',
+              margin: { left: 0, right: 0 },
             },
             selection: {
               mode: "x",
@@ -255,8 +282,6 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             } catch (e) {
               console.log('flotcharts error', e);
             }
-
-            addAxisLabels();
           }
 
           if (shouldDelayDraw(panel)) {
@@ -302,14 +327,14 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
         }
 
         function addGridThresholds(options, panel) {
-          if (panel.grid.threshold1) {
+          if (_.isNumber(panel.grid.threshold1)) {
             var limit1 = panel.grid.thresholdLine ? panel.grid.threshold1 : (panel.grid.threshold2 || null);
             options.grid.markings.push({
               yaxis: { from: panel.grid.threshold1, to: limit1 },
               color: panel.grid.threshold1Color
             });
 
-            if (panel.grid.threshold2) {
+            if (_.isNumber(panel.grid.threshold2)) {
               var limit2;
               if (panel.grid.thresholdLine) {
                 limit2 = panel.grid.threshold2;
@@ -357,19 +382,6 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             data: annotations,
             types: types
           };
-        }
-
-        function addAxisLabels() {
-          if (scope.panel.leftYAxisLabel) {
-            elem.css('margin-left', '10px');
-            var yaxisLabel = $("<div class='axisLabel yaxisLabel'></div>")
-              .text(scope.panel.leftYAxisLabel)
-              .appendTo(elem);
-
-            yaxisLabel.css("margin-top", yaxisLabel.width() / 2 - 20);
-          } else if (elem.css('margin-left')) {
-            elem.css('margin-left', '');
-          }
         }
 
         function configureAxisOptions(data, options) {
@@ -462,7 +474,19 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
           case 'bps':
             url += '&yUnitSystem=si';
             break;
+          case 'Bps':
+            url += '&yUnitSystem=si';
+            break;
           case 'short':
+            url += '&yUnitSystem=si';
+            break;
+          case 'joule':
+            url += '&yUnitSystem=si';
+            break;
+          case 'watt':
+            url += '&yUnitSystem=si';
+            break;
+          case 'ev':
             url += '&yUnitSystem=si';
             break;
           case 'none':

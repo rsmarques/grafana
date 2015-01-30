@@ -37,18 +37,20 @@
 
   &.has-panel-links {
     .panel-title-text:after {
-      content: "\f0c1";
+      content: "\f08e";
       font-family:'FontAwesome';
       font-size: 80%;
       padding-left: 10px;
+      position: relative;
+      top: -1px;
     }
   }
 }
 
 .panel-loading {
   position:absolute;
-  top: 0px;
-  right: 4px;
+  top: -3px;
+  right: 0px;
   z-index: 800;
 }
 
@@ -119,10 +121,6 @@
     &:last-child {
       border-bottom: none;
     }
-  }
-
-  .icon-move {
-    cursor: move;
   }
 
   .panel-menu-link, .panel-menu-icon {
