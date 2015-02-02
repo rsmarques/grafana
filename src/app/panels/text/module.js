@@ -40,25 +40,39 @@ function (angular, app, _, require, PanelMeta) {
 
     $scope.listHtmlTemplates = function(){
 
-        var dir = "html_templates/";
-        var templates = [];
-        var fileExtension = ".html";
+        // var dir = "html_templates/";
+        // var templates = [];
+        // var fileExtension = ".html";
 
-        $.ajax({
+        // $.ajax({
 
-            url: dir,
-            async: false,  
-            success: function (data) {
-                //List all html file names in the page
-                $(data).find("a:contains(" + fileExtension + ")").each(function () {
-                    var filename = this.href.replace(window.location.host, "").replace("http:///", "").replace(".html", "");
-                    templates.push(filename);
-                });
-            }
-        });
+        //     url: dir,
+        //     async: false,  
+        //     success: function (data) {
+
+        //         console.log(data);
+        //         //List all html file names in the page
+        //         $(data).find("a:contains(" + fileExtension + ")").each(function () {
+        //             var filename = this.href.replace(window.location.host, "").replace("http:///", "").replace(".html", "");
+        //             templates.push(filename);
+        //             console.log(filename);
+        //         });
+        //     }
+        // });
+
+        var templates = ['perfomance',
+                     'scorecard',
+                     'scorecard_challenges_missions',
+                     'scorecard_coins',
+                     'scorecard_level_stats',
+                     'scorecard_music',
+                     'scorecard_profit',
+                     'scorecard_profit',
+                     'scorecard_vertical'
+                     ];
 
         return templates;
-    }
+    };
 
     $scope.getTemplate = function(templateName){
 
@@ -75,14 +89,14 @@ function (angular, app, _, require, PanelMeta) {
         });
 
         return template;
-    }
+    };
 
     $scope.parseHtmlTemplate = function(){
 
       var template  = $scope.getTemplate($scope.panel.style['html_template']);
       var subString = '$var-';
 
-      return template == '' ? [] : $scope.parseTemplate(template, subString);
+      return template === '' ? [] : $scope.parseTemplate(template, subString);
     }
 
     $scope.parseTemplate = function(string, subString, allowOverlapping){

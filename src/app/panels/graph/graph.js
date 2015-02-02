@@ -223,7 +223,7 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             series.data = series.getFlotPairs(panel.nullPointMode, panel.y_formats);
 
             // Points are aggregated cumulatively if defined
-            if (options.series.cumulative && series.cumulative != false){
+            if (options.series.cumulative && series.cumulative !== false){
               var count = 0;
               series.data = _.sortBy(series.data, function(seriesData) { return seriesData[0]; });
 
@@ -234,7 +234,7 @@ function (angular, $, kbn, moment, _, GraphTooltip) {
             }
 
             // Points are changed to performance mode if defined
-            if (options.series.performance && series.performance != false){
+            if (options.series.performance && series.performance !== false){
               series.data = _.sortBy(series.data, function(seriesData) { return seriesData[0]; });
 
               var previous = series.data[0][1];
