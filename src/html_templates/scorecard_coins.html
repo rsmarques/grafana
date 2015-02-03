@@ -131,8 +131,8 @@ for (var i=0; i < levels.length; i++){
     var cell3 = row.insertCell(3);
     cell0.innerHTML = level;
     cell1.innerHTML = (stats[level].totalCoins / stats[level].count).toFixed(1);
-    cell2.innerHTML = (stats[level].invested / stats[level].count).toFixed(1) + ' (' + percentage(stats[level].invested, stats[level].totalCoins) + '%)';
-    cell3.innerHTML = (stats[level].inWallet / stats[level].count).toFixed(1) + ' (' + percentage(stats[level].inWallet, stats[level].totalCoins) + '%)';
+    cell2.innerHTML = percentage(stats[level].invested, stats[level].totalCoins) + ' %';
+    cell3.innerHTML = percentage(stats[level].inWallet, stats[level].totalCoins) + ' %';
 }
 
 </script>
