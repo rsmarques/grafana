@@ -67,7 +67,7 @@ function (angular, app, _, require, PanelMeta) {
                      'scorecard_level_stats',
                      'scorecard_music',
                      'scorecard_profit',
-                     'scorecard_profit',
+                     'scorecard_referrals',
                      'scorecard_vertical'
                      ];
 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Users (Since $var-dateSince$)</td>
+    <td id = "$panel.id$.total_users" />
+  <tr>
+    <td>Total Referrals: </td>
+    <td id = "$panel.id$.total_referrals" />
+  </tr>
+  <tr>
+    <td>Nr. of referrals by Total Users: </td>
+    <td id = "$panel.id$.referrals_average" />
+  </tr>
+  <tr>
+    <td>Nr. of referrals by Referring Users: </td>
+    <td id = "$panel.id$.referrals_average_active" />
+  </tr>
+</table>
+
+<script>
+
+var totalUsers            = $var-totalUsers$;
+var totalReferrals        = $var-totalReferrals$;
+var totalReferringUsers   = $var-totalReferringUsers$;
+
+document.getElementById("$panel.id$.total_users").innerHTML                     = totalUsers;
+document.getElementById("$panel.id$.total_referrals").innerHTML                 = totalReferrals;
+document.getElementById("$panel.id$.referrals_average").innerHTML               = (totalReferrals / totalUsers).toFixed(1);
+document.getElementById("$panel.id$.referrals_average_active").innerHTML        = (totalReferrals / totalReferringUsers).toFixed(1);
+
+</script>
+
+</body>
+</html>
