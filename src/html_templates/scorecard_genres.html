@@ -62,6 +62,10 @@
 
 <script>
 
+function sum(array){
+  return array.reduce(function(a, b) { return a + b });
+}
+
 function average(array){
 
   var total = 0;
@@ -77,19 +81,19 @@ function percentage(a, b){
   return (a/b*100).toFixed(1);
 }
 
-function countGenres(stats, genreArray, type){
+function countGenres(stats, genreArray, genreCount, type){
 
   for (var i = 0; i < genreArray.length; i++){
 
     var genre = genreArray[i];
     if (!stats[genre]) stats[genre] = {users: 0, songs: 0, listened: 0, invested: 0};
-    stats[genre][type]++;      
+    stats[genre][type] = genreCount[i];      
   }  
 
   return stats;
 }
 
-function genreStats(users, songs, listened, invested){
+function genreStats(users, songs, songsCount, listened, listenedCount, invested, investedCount){
 
   var stats = {};
 
@@ -97,12 +101,17 @@ function genreStats(users, songs, listened, invested){
 
     var genres = users[i].split(',');
 
-    stats = countGenres(stats, genres, 'users');
+    for (var j = 0; j < genres.length; j++){
+
+      var genre = genres[j];
+      if (!stats[genre]) stats[genre] = {users: 0, songs: 0, listened: 0, invested: 0};
+      stats[genre].users++;      
+    }  
   }
 
-  stats = countGenres(stats, songs, 'songs');
-  stats = countGenres(stats, listened, 'listened');
-  stats = countGenres(stats, invested, 'invested');
+  stats = countGenres(stats, songs, songsCount, 'songs');
+  stats = countGenres(stats, listened, listenedCount, 'listened');
+  stats = countGenres(stats, invested, investedCount, 'invested');
 
   return stats;
 
@@ -110,15 +119,18 @@ function genreStats(users, songs, listened, invested){
 
 var userGenres              = $var-userGenres$;
 var songGenres              = $var-songGenres$;
+var songGenresCount         = $var-songGenresCount$;
 var listenedGenres          = $var-listenedGenres$;
+var listenedGenresCount     = $var-listenedGenresCount$;
 var investedGenres          = $var-investedGenres$;
+var investedGenresCount     = $var-investedGenresCount$;
 
 var userCount               = userGenres.length;
-var songCount               = songGenres.length;
-var listenedCount           = listenedGenres.length;
-var investedCount           = investedGenres.length;
+var songCount               = sum(songGenresCount);
+var listenedCount           = sum(listenedGenresCount);
+var investedCount           = sum(investedGenresCount);
 
-var stats                   = genreStats(userGenres, songGenres, listenedGenres, investedGenres);
+var stats                   = genreStats(userGenres, songGenres, songGenresCount, listenedGenres, listenedGenresCount, investedGenres, investedGenresCount);
 var genreCount              = Object.keys(stats).length;
 var genres                  = Object.keys(stats); 
 var table                   = document.getElementById("$panel.id$.coinStats"); 
@@ -128,7 +140,7 @@ document.getElementById("$panel.id$.genre_count").innerHTML = genreCount;
 // get users prefs count
 var prefsCount = 0;
 for (var i=0; i < genres.length; i++){
-    var genre = genres[i];  
+    var genre   = genres[i];  
     prefsCount += stats[genre].users;
 }
 
