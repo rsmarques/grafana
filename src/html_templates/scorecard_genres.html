@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.musicStats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.musicStats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+  table.musicStats th {
+    padding: 7px;
+  }
+</style>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total genres:</td>
+    <td id = "$panel.id$.genre_count" />
+  <tr>
+</table>
+
+<table id = "$panel.id$.coinStats" class="musicStats" align="center">
+  <caption>Genre Stats</caption>
+  <tr>
+    <th>Genre</th>
+    <th>Users Prefs</th>
+    <th>% Preferred</th>
+    <th>% Tradiio Songs</th>
+    <th>% Listened</th>
+    <th>% Invested</th>
+  </tr>
+</table>
+
+
+<script>
+
+function average(array){
+
+  var total = 0;
+
+  for(var i = 0; i < array.length; i++) {
+      total += array[i];
+  }
+
+  return (total/array.length);
+}
+
+function percentage(a, b){
+  return (a/b*100).toFixed(1);
+}
+
+function countGenres(stats, genreArray, type){
+
+  for (var i = 0; i < genreArray.length; i++){
+
+    var genre = genreArray[i];
+    if (!stats[genre]) stats[genre] = {users: 0, songs: 0, listened: 0, invested: 0};
+    stats[genre][type]++;      
+  }  
+
+  return stats;
+}
+
+function genreStats(users, songs, listened, invested){
+
+  var stats = {};
+
+  for (var i = 0; i < users.length; i++){
+
+    var genres = users[i].split(',');
+
+    stats = countGenres(stats, genres, 'users');
+  }
+
+  stats = countGenres(stats, songs, 'songs');
+  stats = countGenres(stats, listened, 'listened');
+  stats = countGenres(stats, invested, 'invested');
+
+  return stats;
+
+}
+
+var userGenres              = $var-userGenres$;
+var songGenres              = $var-songGenres$;
+var listenedGenres          = $var-listenedGenres$;
+var investedGenres          = $var-investedGenres$;
+
+var userCount               = userGenres.length;
+var songCount               = songGenres.length;
+var listenedCount           = listenedGenres.length;
+var investedCount           = investedGenres.length;
+
+var stats                   = genreStats(userGenres, songGenres, listenedGenres, investedGenres);
+var genreCount              = Object.keys(stats).length;
+var genres                  = Object.keys(stats); 
+var table                   = document.getElementById("$panel.id$.coinStats"); 
+
+document.getElementById("$panel.id$.genre_count").innerHTML = genreCount;
+
+// get users prefs count
+var prefsCount = 0;
+for (var i=0; i < genres.length; i++){
+    var genre = genres[i];  
+    prefsCount += stats[genre].users;
+}
+
+
+for (var i=0; i < genres.length; i++){
+
+    var genre = genres[i];
+    var row   = table.insertRow(i+1);
+    var cell0 = row.insertCell(0);
+    var cell1 = row.insertCell(1);
+    var cell2 = row.insertCell(2);
+    var cell3 = row.insertCell(3);
+    var cell4 = row.insertCell(4);
+    var cell5 = row.insertCell(5);
+    cell0.innerHTML = genre;
+    cell1.innerHTML = percentage(stats[genre].users, userCount) + ' %'; 
+    cell2.innerHTML = percentage(stats[genre].users, prefsCount) + ' %'; 
+    cell3.innerHTML = percentage(stats[genre].songs, songCount) + ' %'; 
+    cell4.innerHTML = percentage(stats[genre].listened, listenedCount) + ' %'; 
+    cell5.innerHTML = percentage(stats[genre].invested, investedCount) + ' %';
+}
+
+</script>
+
+</body>
+</html>

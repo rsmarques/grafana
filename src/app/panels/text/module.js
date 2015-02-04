@@ -64,6 +64,7 @@ function (angular, app, _, require, PanelMeta) {
                      'scorecard',
                      'scorecard_challenges_missions',
                      'scorecard_coins',
+                     'scorecard_genres',
                      'scorecard_level_stats',
                      'scorecard_music',
                      'scorecard_profit',

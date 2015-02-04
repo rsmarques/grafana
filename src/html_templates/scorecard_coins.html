@@ -66,6 +66,7 @@
     <th>Invested</th>
     <th>In Wallet</th>
   </tr>
+</table>
 
 <script>
 
@@ -80,7 +81,6 @@ function groupByLevel(levels, totalCoins, invested, inWallet){
       occs[n].invested   += invested[i];
       occs[n].inWallet   += inWallet[i];
       occs[n].count++;
-      console.log(occs[n]);
   }
 
   return occs;
@@ -117,9 +117,6 @@ var table = document.getElementById("$panel.id$.coinStats");
 
 var stats  = groupByLevel(userLevels, userTotalCoins, userInvested, userInWallet);
 var levels = Object.keys(stats); 
-
-console.log(levels);
-console.log(stats);
 
 for (var i=0; i < levels.length; i++){
 
