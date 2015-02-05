@@ -18,12 +18,22 @@
   }
 
   table.artistStats {
-    margin-left:auto; 
-    margin-right:auto;
+    margin-left: 20px; 
+    margin-right: 20px;
     font-size:13px;
     border-width: 1px;
     border-collapse: collapse;
+    display: inline-table;
+    width: 45%;
+
   }
+  .artiststatusleft{
+  }
+  .artiststatusright{
+    float: right;
+  }
+
+
   table.artistStats td {
     border-width: 1px;
     padding: 5px;
@@ -40,39 +50,28 @@
 
 <!-- <h4>User Levels</h4> -->
 
-<table class="scorecard" align="center">
-  <tr>
-    <td>Total Artists with Songs:</td>
-    <td id = "$panel.id$.total_artists" />
-  <tr>
-  <tr>
-    <td>Total Artists without Songs:</td>
-    <td id = "$panel.id$.total_artists" />
-  <tr>  
-</table>
+<div>
+  <table id = "$panel.id$.artists_with_songs" class="artistStats artiststatusleft" align="center">
+    <caption>Artists With Songs</caption>
+    <tr>
+      <th>Name</th>
+      <th>Contact</th>
+      <th>Nº of Songs</th>
+      <th>Origin</th>
+      <th>Registered</th>
+    </tr>
+  </table>
 
-<table id = "$panel.id$.artistWithSongs" class="artistStats" align="center">
-  <caption>Artists With Songs</caption>
-  <tr>
-    <th>Name</th>
-    <th>Contact</th>
-    <th>Nº of Songs</th>
-    <th>Origin</th>
-    <th>Registered</th>
-  </tr>
-</table>
-
-<p>----------------</p>
-
-<table id = "$panel.id$.artistWithoutSongs" class="artistStats" align="center">
-  <caption>Artists Without Songs</caption>
-  <tr>
-    <th>Name</th>
-    <th>Contact</th>
-    <th>Origin</th>
-    <th>Registered</th>
-  </tr>
-</table>
+  <table id = "$panel.id$.artists_without_songs" class="artistStats artiststatusright" align="center">
+    <caption>Artists Without Songs</caption>
+    <tr>
+      <th>Name</th>
+      <th>Contact</th>
+      <th>Origin</th>
+      <th>Registered</th>
+    </tr>
+  </table>
+</div>
 
 <script>
 
@@ -117,10 +116,8 @@ var artistsWithSongsCount   = artistsWithSongs.length;
 var artistsAllCount         = artistsAll.length;
 var songsCount              = songs.length;
 
-document.getElementById("$panel.id$.total_artists").innerHTML = artistsWithSongsCount;
-
-var artistsWithSongsTable                   = document.getElementById("$panel.id$.artistWithSongs"); 
-var artistsWithoutSongsTable                = document.getElementById("$panel.id$.artistWithoutSongs"); 
+var artistsWithSongsTable                   = document.getElementById("$panel.id$.artists_with_songs"); 
+var artistsWithoutSongsTable                = document.getElementById("$panel.id$.artists_without_songs"); 
 
 for (var i=0; i < artistsWithSongsCount; i++){
 
@@ -138,12 +135,13 @@ for (var i=0; i < artistsWithSongsCount; i++){
   cell4.innerHTML = formatDate(new Date(artist.time));
 }
 
-for (var i=0; i < artistsAllCount; i++){
+for (var i=0, j=0; i < artistsAllCount; i++){
 
   var artist    = artistsAll[i];
   if (!getArtistSongCount(artist.artist_id, songs)){
+    j++;
     var artist    = artistsWithSongs[i];
-    var row       = artistsWithoutSongsTable.insertRow(i+1);
+    var row       = artistsWithoutSongsTable.insertRow(j);
     var cell0     = row.insertCell(0);
     var cell1     = row.insertCell(1);
     var cell2     = row.insertCell(2);
