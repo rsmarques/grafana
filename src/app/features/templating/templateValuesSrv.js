@@ -98,8 +98,9 @@ function (angular, _, kbn) {
       }
 
       var datasource = datasourceSrv.get(variable.datasource);
-      return datasource.metricFindQuery(variable.query)
+      return datasource.metricFindQuery(variable.query, variable.allFields)
         .then(function (results) {
+
           variable.options = self.metricNamesToVariableValues(variable, results);
 
           if (variable.includeAll) {
@@ -138,7 +139,7 @@ function (angular, _, kbn) {
           }
         }
 
-        options.push(value.toString());
+        if (value) options.push(value.toString());
       }
 
       return _.map(options, function(key) {

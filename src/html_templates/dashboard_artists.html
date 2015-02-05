@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.artistStats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.artistStats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+  table.artistStats th {
+    padding: 7px;
+  }
+</style>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Artists with Songs:</td>
+    <td id = "$panel.id$.total_artists" />
+  <tr>
+  <tr>
+    <td>Total Artists without Songs:</td>
+    <td id = "$panel.id$.total_artists" />
+  <tr>  
+</table>
+
+<table id = "$panel.id$.artistWithSongs" class="artistStats" align="center">
+  <caption>Artists With Songs</caption>
+  <tr>
+    <th>Name</th>
+    <th>Contact</th>
+    <th>Nº of Songs</th>
+    <th>Origin</th>
+    <th>Registered</th>
+  </tr>
+</table>
+
+<p>----------------</p>
+
+<table id = "$panel.id$.artistWithoutSongs" class="artistStats" align="center">
+  <caption>Artists Without Songs</caption>
+  <tr>
+    <th>Name</th>
+    <th>Contact</th>
+    <th>Origin</th>
+    <th>Registered</th>
+  </tr>
+</table>
+
+<script>
+
+
+function sum(array){
+  return array.reduce(function(a, b) { return a + b });
+}
+
+function percentage(a, b){
+  return (a/b*100).toFixed(1);
+}
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
+function getArtistSongCount (artistId, songs) {
+
+  var count = 0;
+
+  for (var i = 0; i < songs.length; i++){
+    if (songs[i].artist_id == artistId) { count = songs[i].count; break; }
+  }
+
+  return count;
+}
+
+
+var artistsWithSongs        = $var-artists$;
+var artistsAll              = $var-artistsAll$;
+var songs                   = $var-songsAll$;
+
+var artistsWithSongsCount   = artistsWithSongs.length;
+var artistsAllCount         = artistsAll.length;
+var songsCount              = songs.length;
+
+document.getElementById("$panel.id$.total_artists").innerHTML = artistsWithSongsCount;
+
+var artistsWithSongsTable                   = document.getElementById("$panel.id$.artistWithSongs"); 
+var artistsWithoutSongsTable                = document.getElementById("$panel.id$.artistWithoutSongs"); 
+
+for (var i=0; i < artistsWithSongsCount; i++){
+
+  var artist    = artistsWithSongs[i];
+  var row       = artistsWithSongsTable.insertRow(i+1);
+  var cell0     = row.insertCell(0);
+  var cell1     = row.insertCell(1);
+  var cell2     = row.insertCell(2);
+  var cell3     = row.insertCell(3);
+  var cell4     = row.insertCell(4);
+  cell0.innerHTML = artist.name;
+  cell1.innerHTML = artist.email;
+  cell2.innerHTML = getArtistSongCount(artist.artist_id, songs);
+  cell3.innerHTML = artist.origin;
+  cell4.innerHTML = formatDate(new Date(artist.time));
+}
+
+for (var i=0; i < artistsAllCount; i++){
+
+  var artist    = artistsAll[i];
+  if (!getArtistSongCount(artist.artist_id, songs)){
+    var artist    = artistsWithSongs[i];
+    var row       = artistsWithoutSongsTable.insertRow(i+1);
+    var cell0     = row.insertCell(0);
+    var cell1     = row.insertCell(1);
+    var cell2     = row.insertCell(2);
+    var cell3     = row.insertCell(3);
+    cell0.innerHTML = artist.name;
+    cell1.innerHTML = artist.email;
+    cell2.innerHTML = artist.origin;
+    cell3.innerHTML = formatDate(new Date(artist.time));
+  }
+}
+
+</script>
+
+</body>
+</html>

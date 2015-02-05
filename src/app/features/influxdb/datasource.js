@@ -106,7 +106,7 @@ function (angular, _, kbn, InfluxSeries, InfluxQueryBuilder) {
       });
     };
 
-    InfluxDatasource.prototype.metricFindQuery = function (query) {
+    InfluxDatasource.prototype.metricFindQuery = function (query, allFields) {
       var interpolated;
       try {
         interpolated = templateSrv.replace(query);
@@ -117,11 +117,16 @@ function (angular, _, kbn, InfluxSeries, InfluxQueryBuilder) {
 
       return this._seriesQuery(interpolated)
         .then(function (results) {
+
           if (!results || results.length === 0) { return []; }
 
           return _.map(results[0].points, function (metric) {
-            return {
-              text: metric[1],
+            if (allFields) return {
+              text: aggregateValues(results[0].columns, metric),
+              expandable: false
+            };
+            else return {
+              text: results[0].columns[1] == 'sequence_number' ? metric[2] : metric[1],
               expandable: false
             };
           });
@@ -140,6 +145,17 @@ function (angular, _, kbn, InfluxSeries, InfluxQueryBuilder) {
           }, delay);
         }
       });
+    }
+
+    function aggregateValues(columns, metrics){
+
+      var obj = {};
+
+      for (var i = 0; i < columns.length; i++){
+        obj[columns[i]] = metrics[i];
+      }
+
+      return JSON.stringify(obj);
     }
 
     InfluxDatasource.prototype._seriesQuery = function(query) {

@@ -60,7 +60,8 @@ function (angular, app, _, require, PanelMeta) {
         //     }
         // });
 
-        var templates = ['perfomance',
+        var templates = ['dashboard_artists',
+                     'perfomance',
                      'scorecard',
                      'scorecard_challenges_missions',
                      'scorecard_coins',
