@@ -139,7 +139,7 @@ function (angular, _, kbn) {
           }
         }
 
-        if (value) options.push(value.toString());
+        if (value !== null) options.push(value.toString());
       }
 
       return _.map(options, function(key) {
