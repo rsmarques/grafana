@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+</style>
+</head>
+<body>
+
+<!-- <h4>User Levels</h4> -->
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Active Users:</td>
+    <td id = "$panel.id$.total_users" />
+  <tr>
+    <td>Total Time Lapsed: </td>
+    <td id = "$panel.id$.total_time" />
+  </tr>
+  <tr>
+    <td>Average Active Time (Total): </td>
+    <td id = "$panel.id$.avg_active_time" />
+  </tr>
+  <tr>
+    <td>Average Active Time / Day: </td>
+    <td id = "$panel.id$.avg_active_time_day" />
+  </tr>
+</table>
+
+<script>
+
+// Get received time slot in hours
+function parseTimeSlot(timeSlot) {
+
+  var time = parseInt(timeSlot.substr(0, timeSlot.length-1));
+  var type = timeSlot.substr(timeSlot.length-1);
+
+  switch(type) {
+      case "s":
+          time /= 60*60;
+          break;
+      case "m":
+          time /= 60;
+          break;
+      case "h":
+          break;
+      case "d":
+          time *= 24;
+          break;
+      case "w":
+          time *= 24*7;
+          break;
+  }
+
+  return time;
+}
+
+function sum(array){
+  return array.reduce(function(a, b) { return a + b });
+}
+
+function average(array){
+
+  var total = 0;
+
+  for(var i = 0; i < array.length; i++) {
+      total += array[i];
+  }
+
+  return (total/array.length);
+}
+
+var userActiveCount       = $var-userActiveCount$;
+var userActiveTotal       = $var-userActiveTotal$;
+var timeSlot              = parseTimeSlot($var-timeSlot$);
+
+var totalCount            = 0;
+for (var i = 0; i < userActiveCount.length; i++) totalCount += userActiveCount[i].count;
+// Get time period in hours
+var timespan              = Math.abs(userActiveCount[0].time - userActiveCount[userActiveCount.length - 1].time) / 36e5;
+var avgTimeUser           = totalCount / userActiveTotal * timeSlot;
+var avgTimeUserDay        = avgTimeUser * (24 / timespan);
+
+
+document.getElementById("$panel.id$.total_users").innerHTML          = userActiveTotal;
+document.getElementById("$panel.id$.total_time").innerHTML           = timespan.toFixed(2) + ' h';
+document.getElementById("$panel.id$.avg_active_time").innerHTML      = avgTimeUser.toFixed(2) + ' h';
+document.getElementById("$panel.id$.avg_active_time_day").innerHTML  = avgTimeUserDay.toFixed(2) + ' h';
+
+</script>
+
+</body>
+</html>
