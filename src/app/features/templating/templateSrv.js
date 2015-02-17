@@ -98,7 +98,7 @@ function (angular, _) {
 
     this.setInfluxDbQueryStat = function(table, row, startTime, endTime) {
 
-      var whereClause = endTime ? " where time > '" + startTime + "' and time < '" + endTime + "'": " where time > '" + startTime + "'";
+      var whereClause = endTime ? " where time > " + startTime + " and time < " + endTime : " where time > " + startTime;
 
       return "select count(" + row + ") from " + table + whereClause;
 
