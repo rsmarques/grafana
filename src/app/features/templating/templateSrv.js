@@ -60,6 +60,28 @@ function (angular, _) {
       });
     };
 
+    this.setQueryStats = function(variable) {
+
+      var stats = [];
+      var statsTable    = variable.stats_table;
+      var statsVariable = variable.stats_variable;
+
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$current_day'),   "var" : "current_day"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$current_week'),  "var" : "current_week"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$current_month'), "var" : "current_month"});
+
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$previous_day',   '$current_day'), "var" : "previous_day"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$previous_week',  '$current_week'), "var" : "previous_week"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$previous_month', '$current_month'), "var" : "previous_month"});
+
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$previous_day',   'now()-1d'),  "var" : "relative_day"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$previous_week',  'now()-7d'),  "var" : "relative_week"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, '$previous_month', 'now()-30d'), "var" : "relative_month"});
+
+      return stats;
+
+    };
+
     this.replace = function(target) {
       if (!target) { return; }
 
@@ -72,6 +94,14 @@ function (angular, _) {
 
         return self._grafanaVariables[value] || value;
       });
+    };
+
+    this.setInfluxDbQueryStat = function(table, row, startTime, endTime) {
+
+      var whereClause = endTime ? " where time > " + startTime + " and time < " + endTime : " where time > " + startTime;
+
+      return "select count(" + row + ") from " + table + whereClause;
+
     };
 
     this.replaceWithText = function(target) {

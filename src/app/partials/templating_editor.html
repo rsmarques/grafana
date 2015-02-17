@@ -59,14 +59,14 @@
 						</div>
 						<div class="editor-option">
 							<label class="small">Type</label>
-							<select class="input-medium" ng-model="current.type" ng-options="f for f in ['query', 'interval', 'custom']" ng-change="typeChanged()"></select>
+							<select class="input-medium" ng-model="current.type" ng-options="f for f in ['query', 'query_stats', 'interval', 'custom']" ng-change="typeChanged()"></select>
 						</div>
-						<div class="editor-option" ng-show="current.type === 'query'">
+						<div class="editor-option" ng-show="current.type === 'query' || current.type === 'query_stats'">
 							<label class="small">Datasource</label>
 							<select class="input input-medium" ng-model="current.datasource" ng-options="f.value as f.name for f in datasources"></select>
 						</div>
 
-						<editor-opt-bool text="Refresh on load" show-if="current.type === 'query'"
+						<editor-opt-bool text="Refresh on load" show-if="current.type === 'query' || current.type === 'query_stats'"
 						                 tip="Check if you want values to be updated on dashboard load, will slow down dashboard load time"
 						                 model="current.refresh"></editor-opt-bool>
 					</div>
@@ -129,6 +129,21 @@
 							<editor-opt-bool text="All fields" model="current.allFields" change="runQuery()"></editor-opt-bool>
 						</div>
 					</div>
+
+					<div ng-show="current.type === 'query_stats'">
+						<div class="editor-row">
+							<div class="editor-option form-inline">
+								<label class="small">Query Table</label>
+								<input type="text" class="input-large" ng-model='current.stats_table' placeholder="apps.servers.*"></input>
+							</div>
+							<div class="editor-option form-inline">
+								<label class="small">Query Variable</label>
+								<input type="text" class="input-large" ng-model='current.stats_variable' placeholder="id"></input>
+								<button class="btn btn-small btn-success" ng-click="runQuery()" bs-tooltip="'Execute query'" data-placement="right"><i class="fa fa-play"></i></button>
+							</div>
+						</div>
+					</div>
+
 				</div>
 				<div class="editor-option">
 					<div class="editor-row">

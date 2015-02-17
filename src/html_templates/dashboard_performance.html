@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.stats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.stats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+  table.stats th {
+    padding: 7px;
+  }
+</style>
+</head>
+<body>
+
+<table id = "$panel.id$.coinStats" class="stats" align="center">
+  <tr>
+    <th/>
+    <th colspan="2">Today</th>
+    <th colspan="2">Week</th>
+    <th colspan="2">Month</th>
+  </tr>
+  <tr>
+    <th>Current</th>
+    <td id="$panel.id$.current.day" colspan="2"></td>
+    <td id="$panel.id$.current.week" colspan="2"></td>
+    <td id="$panel.id$.current.month" colspan="2"></td>
+  </tr>
+  <tr>
+    <th>Previous</th>
+    <td id="$panel.id$.previous.day"></td>
+    <td id="$panel.id$.relative.day"></td>
+    <td id="$panel.id$.previous.week"></td>
+    <td id="$panel.id$.relative.week"></td>
+    <td id="$panel.id$.previous.month"></td>
+    <td id="$panel.id$.relative.month"></td>
+  </tr>
+  <tr>
+    <th>Performance</th>
+    <td id="$panel.id$.performance.day" class="performance"></td>
+    <td id="$panel.id$.performance.relative.day" class="performance"></td>
+    <td id="$panel.id$.performance.week" class="performance"></td>
+    <td id="$panel.id$.performance.relative.week" class="performance"></td>
+    <td id="$panel.id$.performance.month" class="performance"></td>
+    <td id="$panel.id$.performance.relative.month" class="performance"></td>
+  </tr>
+</table>
+
+<script>
+
+function performance(a, b){
+
+	return (a/b * 100).toFixed(1);
+}
+
+var stats = $var-stats$;
+
+document.getElementById("$panel.id$.current.day").innerHTML   = stats['current_day'];
+document.getElementById("$panel.id$.current.week").innerHTML  = stats['current_week'];
+document.getElementById("$panel.id$.current.month").innerHTML = stats['current_month'];
+
+document.getElementById("$panel.id$.previous.day").innerHTML   = stats['previous_day'];
+document.getElementById("$panel.id$.previous.week").innerHTML  = stats['previous_week'];
+document.getElementById("$panel.id$.previous.month").innerHTML = stats['previous_month'];
+
+document.getElementById("$panel.id$.relative.day").innerHTML   = stats['relative_day'];
+document.getElementById("$panel.id$.relative.week").innerHTML  = stats['relative_week'];
+document.getElementById("$panel.id$.relative.month").innerHTML = stats['relative_month'];
+
+document.getElementById("$panel.id$.performance.day").innerHTML = performance(stats['current_day'], stats['previous_day']) + ' %';
+document.getElementById("$panel.id$.performance.relative.day").innerHTML = performance(stats['current_day'], stats['relative_day']) + ' %';
+
+document.getElementById("$panel.id$.performance.week").innerHTML = performance(stats['current_week'], stats['previous_week']) + ' %';
+document.getElementById("$panel.id$.performance.relative.week").innerHTML = performance(stats['current_week'], stats['relative_week']) + ' %';
+
+document.getElementById("$panel.id$.performance.month").innerHTML = performance(stats['current_month'], stats['previous_month']) + ' %';
+document.getElementById("$panel.id$.performance.relative.month").innerHTML = performance(stats['current_month'], stats['relative_month']) + ' %';
+
+// if (performance >= 0) document.getElementById("$panel.id$.performance").style.color = "green";
+// else document.getElementById("$panel.id$.performance").style.color = "red";
+
+</script>
+
+</body>
+</html>

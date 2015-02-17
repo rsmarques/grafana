@@ -91,34 +91,70 @@ function (angular, _, kbn) {
     };
 
     this.updateOptions = function(variable) {
-      if (variable.type !== 'query') {
+      if (variable.type !== 'query' && variable.type !== 'query_stats') {
         self._updateNonQueryVariable(variable);
         self.setVariableValue(variable, variable.options[0]);
         return $q.when([]);
       }
 
       var datasource = datasourceSrv.get(variable.datasource);
-      return datasource.metricFindQuery(variable.query, variable.allFields)
+
+      if (variable.type === 'query') {
+        return datasource.metricFindQuery(variable.query, variable.allFields)
+          .then(function (results) {
+
+            variable.options = self.metricNamesToVariableValues(variable, results);
+
+            if (variable.includeAll) {
+              self.addAllOption(variable);
+            }
+
+            // if parameter has current value
+            // if it exists in options array keep value
+            if (variable.current) {
+              var currentOption = _.findWhere(variable.options, { text: variable.current.text });
+              if (currentOption) {
+                return self.setVariableValue(variable, currentOption, true);
+              }
+            }
+
+            return self.setVariableValue(variable, variable.options[0], true);
+          });
+      }
+      else {
+
+        variable.options   = [];
+        variable.allFormat = 'glob';
+        var stats          = templateSrv.setQueryStats(variable);
+
+        var promises = [];
+
+        for (var i = 0; i < stats.length; i++){
+          promises.push(self.addQueryCount(variable, stats[i].query, stats[i].var));
+        }
+
+        return $q.all(promises).then(function (results){
+          self.addAllOption(variable);
+        });
+      }
+    };
+
+    this.addQueryCount = function(variable, query, objName){
+
+      var datasource = datasourceSrv.get(variable.datasource);
+
+      return datasource.metricFindQuery(query, false)
         .then(function (results) {
 
-          variable.options = self.metricNamesToVariableValues(variable, results);
+          var result  = results.length > 0 ? results[0].text : 0;
+          var key     = '"' + objName + '":' + result;
 
-          if (variable.includeAll) {
-            self.addAllOption(variable);
-          }
+          variable.options.push({text: key, value: key});
 
-          // if parameter has current value
-          // if it exists in options array keep value
-          if (variable.current) {
-            var currentOption = _.findWhere(variable.options, { text: variable.current.text });
-            if (currentOption) {
-              return self.setVariableValue(variable, currentOption, true);
-            }
-          }
+          return self.setVariableValue(variable, variable.options[0], false);
 
-          return self.setVariableValue(variable, variable.options[0], true);
-        });
-    };
+        });      
+    };    
 
     this.metricNamesToVariableValues = function(variable, metricNames) {
       var regex, options, i, matches;
