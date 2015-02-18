@@ -142,6 +142,9 @@
 								<button class="btn btn-small btn-success" ng-click="runQuery()" bs-tooltip="'Execute query'" data-placement="right"><i class="fa fa-play"></i></button>
 							</div>
 						</div>
+						<div class="editor-row" style="margin: 15px 0">
+							<editor-opt-bool text="Distinct Stats" model="current.distinct" change="runQuery()"></editor-opt-bool>
+						</div>
 					</div>
 
 				</div>

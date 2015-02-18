@@ -71,7 +71,7 @@ function (angular, _, kbn) {
         if (otherVariable === updatedVariable) {
           return;
         }
-        if (templateSrv.containsVariable(otherVariable.query, updatedVariable.name)) {
+        if (otherVariable.query !== undefined && templateSrv.containsVariable(otherVariable.query, updatedVariable.name)) {
           return self.updateOptions(otherVariable);
         }
       });
@@ -135,6 +135,7 @@ function (angular, _, kbn) {
 
         return $q.all(promises).then(function (results){
           self.addAllOption(variable);
+          return self.setVariableValue(variable, variable.options[0], false);
         });
       }
     };
@@ -150,8 +151,6 @@ function (angular, _, kbn) {
           var key     = '"' + objName + '":' + result;
 
           variable.options.push({text: key, value: key});
-
-          return self.setVariableValue(variable, variable.options[0], false);
 
         });      
     };    
