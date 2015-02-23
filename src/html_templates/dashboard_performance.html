@@ -100,13 +100,13 @@ document.getElementById("$panel.id$.relative.day").innerHTML   = stats['relative
 document.getElementById("$panel.id$.relative.week").innerHTML  = stats['relative_week'] + addTimeSpan('partial');;
 document.getElementById("$panel.id$.relative.month").innerHTML = stats['relative_month'] + addTimeSpan('partial');;
 
-document.getElementById("$panel.id$.performance.day").innerHTML = performance(stats['current_day'], stats['previous_day']) + ' %';
+document.getElementById("$panel.id$.performance.day").innerHTML          = performance(stats['current_day'], stats['previous_day']) + ' %';
 document.getElementById("$panel.id$.performance.relative.day").innerHTML = performance(stats['current_day'], stats['relative_day']) + ' %';
 
-document.getElementById("$panel.id$.performance.week").innerHTML = performance(stats['current_week'], stats['previous_week']) + ' %';
+document.getElementById("$panel.id$.performance.week").innerHTML          = performance(stats['current_week'], stats['previous_week']) + ' %';
 document.getElementById("$panel.id$.performance.relative.week").innerHTML = performance(stats['current_week'], stats['relative_week']) + ' %';
 
-document.getElementById("$panel.id$.performance.month").innerHTML = performance(stats['current_month'], stats['previous_month']) + ' %';
+document.getElementById("$panel.id$.performance.month").innerHTML          = performance(stats['current_month'], stats['previous_month']) + ' %';
 document.getElementById("$panel.id$.performance.relative.month").innerHTML = performance(stats['current_month'], stats['relative_month']) + ' %';
 
 var performanceData = document.querySelectorAll('[id^="$panel.id$.performance."]');
@@ -114,15 +114,19 @@ var performanceData = document.querySelectorAll('[id^="$panel.id$.performance."]
 for (var i = 0; i < performanceData.length; i++){
 
 	var performance = Number(performanceData[i].innerHTML.split(" ")[0]);
-	if (performance == Infinity){
+	if (performance == Infinity)   {
 		performanceData[i].innerHTML = "&infin;"		
 		performanceData[i].style.fontSize = "17px";
 	}
-	if (performance == NaN){
+
+  console.log(performance);
+
+	if (isNaN(performance)) {
 		performanceData[i].innerHTML = "--";
 	}
 	else {
 		performanceData[i].style.backgroundColor = performance >= 100 ?  "green" : performance < 80 ? "red" : "yellow";
+		// performanceData[i].style.color = performance >= 100 ?  "white" : performance < 80 ? "white" : "black";
 	}
 }
 
