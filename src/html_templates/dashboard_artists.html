@@ -138,7 +138,7 @@ for (var i=0; i < artistsWithSongsCount; i++){
 for (var i=0, j=0; i < artistsAllCount; i++){
 
   var artist    = artistsAll[i];
-  if (!getArtistSongCount(artist.artist_id, songs)){
+  if (getArtistSongCount(artist.artist_id, songs) == 0){
     j++;
     var artist    = artistsWithSongs[i];
     var row       = artistsWithoutSongsTable.insertRow(j);
