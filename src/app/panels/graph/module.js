@@ -191,8 +191,6 @@ function (angular, app, $, _, kbn, moment, TimeSeries, PanelMeta) {
 
       return $q.all(promises).then(function(results){
 
-        console.log(results);
-
         var obj  = {};
         obj.data = [];
 
@@ -202,7 +200,6 @@ function (angular, app, $, _, kbn, moment, TimeSeries, PanelMeta) {
           });
         });
 
-        console.log(obj);
         return obj;
       }).then($scope.dataHandler)
         .then(null, function(err) {
