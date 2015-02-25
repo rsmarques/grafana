@@ -33,10 +33,11 @@ function (angular, _, kbn, InfluxSeries, InfluxQueryBuilder) {
     }
 
     InfluxDatasource.prototype.query = function(options) {
+
       var timeFilter = getTimeFilter(options);
 
       var promises = _.map(options.targets, function(target) {
-        if (target.hide || !((target.series && target.column) || target.query)) {
+        if (target.datasource && target.datasource !== this.name || target.hide || !((target.series && target.column) || target.query)) {
           return [];
         }
 
@@ -54,6 +55,7 @@ function (angular, _, kbn, InfluxSeries, InfluxQueryBuilder) {
         var alias = target.alias ? templateSrv.replace(target.alias) : '';
 
         var handleResponse = _.partial(handleInfluxQueryResponse, alias, queryBuilder.groupByField);
+
         return this._seriesQuery(query).then(handleResponse);
 
       }, this);

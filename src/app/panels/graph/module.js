@@ -16,7 +16,7 @@ function (angular, app, $, _, kbn, moment, TimeSeries, PanelMeta) {
 
   var module = angular.module('grafana.panels.graph');
 
-  module.controller('GraphCtrl', function($scope, $rootScope, panelSrv, annotationsSrv, timeSrv) {
+  module.controller('GraphCtrl', function($q, $scope, $rootScope, panelSrv, annotationsSrv, timeSrv, datasourceSrv) {
 
     $scope.panelMeta = new PanelMeta({
       description: 'Graph panel',
@@ -167,8 +167,44 @@ function (angular, app, $, _, kbn, moment, TimeSeries, PanelMeta) {
 
       $scope.annotationsPromise = annotationsSrv.getAnnotations($scope.rangeUnparsed, $scope.dashboard);
 
-      return $scope.datasource.query(metricsQuery)
-        .then($scope.dataHandler)
+      var newDatasources = _.map(metricsQuery.targets, function(target) {
+        if (target.datasource) return target.datasource;
+      }).filter(function(item, pos, self) {
+        return item && item !== $scope.datasource.name && self.indexOf(item) == pos;
+      });
+
+      var promises = [];
+      var results  = [];
+
+      for (var i = 0; i < newDatasources.length; i++) {
+
+        var metrics = _.clone(metricsQuery);
+
+        var targetDatasource = datasourceSrv.get(newDatasources[i]);
+        metrics.targets = metrics.targets.filter(function(item, pos, self) {
+          return item.datasource == newDatasources[i];
+        });
+        promises.push(targetDatasource.query(metrics));
+      }
+
+      promises.push($scope.datasource.query(metricsQuery));
+
+      return $q.all(promises).then(function(results){
+
+        console.log(results);
+
+        var obj  = {};
+        obj.data = [];
+
+        _.each(results, function(result){
+          _.each(result.data, function(result){
+            obj.data.push(result);
+          });
+        });
+
+        console.log(obj);
+        return obj;
+      }).then($scope.dataHandler)
         .then(null, function(err) {
           $scope.panelMeta.loading = false;
           $scope.panelMeta.error = err.message || "Timeseries data request error";

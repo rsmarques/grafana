@@ -75,6 +75,14 @@
 					spellcheck='false' placeholder="alias" ng-blur="get_data()">
 				</li>
 
+				<li class="tight-form-item">
+					datasource
+				</li>
+
+				<li>
+					<select class="input-medium" ng-model="target.datasource" ng-options="f.name as f.name for f in [''].concat(datasources)" ng-change="get_data()"></select>
+				</li>
+
 			</ul>
 
 			<div class="clearfix"></div>
@@ -85,6 +93,12 @@
 			<ul class="tight-form-list" ng-show="target.rawQuery">
 				<li class="tight-form-item">
 					<i class="fa fa-eye invisible"></i>
+				</li>
+				<li class="tight-form-item">
+					datasource
+				</li>
+				<li>
+					<select class="input-medium" ng-model="target.datasource" ng-options="f.name as f.name for f in [''].concat(datasources)" ng-change="get_data()"></select>
 				</li>
 				<li class="tight-form-item">
 					alias
