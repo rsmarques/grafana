@@ -1,10 +1,11 @@
 define([
   'angular',
   'lodash',
+  'kbn',
   './editorCtrl',
   './templateValuesSrv',
 ],
-function (angular, _) {
+function (angular, _, kbn) {
   'use strict';
 
   var module = angular.module('grafana.services');
@@ -95,18 +96,38 @@ function (angular, _) {
       var stats = [];
       var statsTable    = variable.stats_table;
       var statsVariable = variable.stats_variable;
+      var time          = {};
 
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$current_day'),   "var" : "current_day"});
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$current_week'),  "var" : "current_week"});
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$current_month'), "var" : "current_month"});
+      var d           = new Date();
+      var dayDiff     = 1;
+      var weekDiff    = d.getDay() == 0 ? d.getDay() + 6 : d.getDay() - 1;
 
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$previous_day',   '$current_day'), "var" : "previous_day"});
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$previous_week',  '$current_week'), "var" : "previous_week"});
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$previous_month', '$current_month'), "var" : "previous_month"});
+      time['current_day']   = kbn.parseDate('now');
+      time['previous_day']  = kbn.parseDate('now-' + dayDiff + 'd');
 
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$previous_day',   'now()-1d'),  "var" : "relative_day"});
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$previous_week',  'now()-7d'),  "var" : "relative_week"});
-      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, '$previous_month', 'now()-30d'), "var" : "relative_month"});
+      time['current_week']  = kbn.parseDate('now-'    + weekDiff + 'd');
+      time['previous_week'] = kbn.parseDate('now-7d-' + weekDiff + 'd');
+
+      time['current_month']  = new Date();
+      time['previous_month'] = new Date();
+      time['current_month'].setDate(1);
+      time['previous_month'].setMonth(time['current_month'].getMonth() - 1, 1);
+
+      _.each(time, function(value, key){
+        time[key] = kbn.formatDate(value);
+      });
+
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['current_day']),   "var" : "current_day"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['current_week']),  "var" : "current_week"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['current_month']), "var" : "current_month"});
+
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['previous_day'],   time['current_day']), "var" : "previous_day"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['previous_week'],  time['current_week']), "var" : "previous_week"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['previous_month'], time['current_month']), "var" : "previous_month"});
+
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['previous_day'],   'now()-1d'),  "var" : "relative_day"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['previous_week'],  'now()-7d'),  "var" : "relative_week"});
+      stats.push({"query" : self.setInfluxDbQueryStat(statsTable, statsVariable, variable.distinct, time['previous_month'], 'now()-30d'), "var" : "relative_month"});
 
       return stats;
 
