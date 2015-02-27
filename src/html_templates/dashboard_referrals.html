@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.referralStats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.referralStats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+</style>
+</head>
+<body>
+
+<table class="scorecard" align="center">
+  <tr>
+    <td>Total Referrals:</td>
+    <td id = "$panel.id$.referral_count" />
+  <tr>
+    <td>Total Referring Users: </td>
+    <td id = "$panel.id$.referral_user_count" />
+  </tr>
+  <tr>
+    <td>Average Referrals (Referring User): </td>
+    <td id = "$panel.id$.average_referrals" />
+  </tr>
+  <tr>
+    <td>Average Referrals (Total Users): </td>
+    <td id = "$panel.id$.average_referrals_total" />
+  </tr>
+</table>
+
+<p>--------------</p>
+
+<table id = "$panel.id$.referralStats" class="referralStats" align="center">
+  <caption>Top 10 Referrers</caption>
+  <tr>
+    <th>id</th>
+    <th># Referrals</th>
+  </tr>
+</table>
+
+<script>
+
+function average(array){
+
+  var total = 0;
+
+  for(var i = 0; i < array.length; i++) {
+      total += array[i];
+  }
+
+  return (total/array.length);
+}
+
+var referralCount          = $var-referralCount$;
+var referralUserCount      = $var-referralUserCount$;
+var totalUserCount         = $var-totalUserCount$;
+
+document.getElementById("$panel.id$.referral_count").innerHTML                = referralCount;
+document.getElementById("$panel.id$.referral_user_count").innerHTML           = referralUserCount;
+document.getElementById("$panel.id$.average_referrals").innerHTML             = (referralCount / referralUserCount).toFixed(1);
+document.getElementById("$panel.id$.average_referrals_total").innerHTML       = (referralCount / totalUserCount).toFixed(1);
+
+var referralUsers          = $var-referralUsers$;
+
+referralUsers = referralUsers.sort(function(a, b){ return b.count-a.count;});
+
+var table                  = document.getElementById("$panel.id$.referralStats");
+
+for (var i=0; i < (referralUsers.length > 10 ? 10 : referralUsers.length); i++){
+
+    var id    = referralUsers[i].inviter_id;
+    var count = referralUsers[i].count;
+    var row   = table.insertRow(i + 1);
+    var cell0 = row.insertCell(0);
+    var cell1 = row.insertCell(1);
+    cell0.innerHTML = id;
+    cell1.innerHTML = count;
+}
+
+</script>
+
+</body>
+</html>
