@@ -62,7 +62,9 @@ function (angular, app, _, require, PanelMeta) {
 
         var templates = ['dashboard_artists',
                      'dashboard_au',
+                     'dashboard_wmau',
                      'dashboard_performance',
+                     'dashboard_performance_wm',
                      'dashboard_referrals',
                      'perfomance',
                      'scorecard',
