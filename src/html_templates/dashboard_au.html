@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.stats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.stats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+  table.stats th {
+    padding: 7px;
+  }
+  .timespan {
+  	font-size: 12px;
+  	color: #666;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<table id = "$panel.id$.stats" class="stats" align="center">
+  <tr>
+    <th/>
+    <th>DAU</th>
+    <th>WAU</th>
+    <th>MAU</th>
+  </tr>
+  <tr>
+    <th>Active Users</th>
+    <td id="$panel.id$.current.day"></td>
+    <td id="$panel.id$.current.week"></td>
+    <td id="$panel.id$.current.month"></td>
+  </tr>
+  <tr>
+    <th>User Base</th>
+    <td id="$panel.id$.count" colspan="3"></td>
+  </tr>
+  <tr>
+    <th>Performance</th>
+    <td id="$panel.id$.performance.day" class="performance"></td>
+    <td id="$panel.id$.performance.week" class="performance"></td>
+    <td id="$panel.id$.performance.month" class="performance"></td>
+  </tr>
+</table>
+
+<script>
+
+function is_object(mixed_var) {
+  if (Object.prototype.toString.call(mixed_var) === '[object Array]') {
+    return false;
+  }
+  return mixed_var !== null && typeof mixed_var == 'object';
+}
+
+function merge(a, b, operator) {
+
+  var cache = {};
+  cache = unpackObject(a, cache, operator);
+  cache = unpackObject(b, cache, operator);
+
+  return cache;
+}
+
+function unpackObject(a, cache, operator) {
+  for (prop in a) {
+    if (a.hasOwnProperty(prop)) {
+      if (cache[prop] === undefined) {
+        cache[prop] = a[prop];
+      } else {
+        if (typeof cache[prop] === typeof a[prop]) {
+          if (is_object(a[prop])) {
+            cache[prop] = merge(cache[prop], a[prop]);
+          } else {
+            eval('cache[prop] ' + operator + '= a[prop]');
+          }
+        }
+      }
+    }
+  }
+  return cache;
+}
+
+function performance(a, b){
+
+	return (a/b * 100).toFixed(1);
+}
+
+function addTimeSpan(str){
+	return '<br><span class="timespan">' + str + '</span>';
+}
+
+var stats = $var-stats$;
+var count = $var-count$;
+
+document.getElementById("$panel.id$.current.day").innerHTML   = stats['current_day'];
+document.getElementById("$panel.id$.current.week").innerHTML  = stats['current_week'];
+document.getElementById("$panel.id$.current.month").innerHTML = stats['current_month'];
+
+document.getElementById("$panel.id$.count").innerHTML         = count;
+
+document.getElementById("$panel.id$.performance.day").innerHTML          = performance(stats['current_day'], count) + ' %';
+document.getElementById("$panel.id$.performance.week").innerHTML          = performance(stats['current_week'], count) + ' %';
+document.getElementById("$panel.id$.performance.month").innerHTML          = performance(stats['current_month'], count) + ' %';
+
+</script>
+
+</body>
+</html>

@@ -61,6 +61,7 @@ function (angular, app, _, require, PanelMeta) {
         // });
 
         var templates = ['dashboard_artists',
+                     'dashboard_au',
                      'dashboard_performance',
                      'dashboard_referrals',
                      'perfomance',
