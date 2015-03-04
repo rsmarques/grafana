@@ -94,7 +94,8 @@ function (angular, _, kbn) {
     this.setQueryStats = function(variable) {
 
       var previousDate = new Date(self._values['previous_date']);
-      previousDate     = !isNaN(previousDate.valueOf()) ? previousDate : null;
+      var currentDate  = new Date();
+      previousDate     = isNaN(previousDate.valueOf()) ? null : previousDate > currentDate ? null : previousDate;
 
       var stats = [];
       var statsTable    = variable.stats_table;
