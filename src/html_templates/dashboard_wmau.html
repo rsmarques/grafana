@@ -55,10 +55,10 @@
   </tr>
   <tr>
     <th>User Base</th>
-    <td class="$panel.id$.active.count"></td>
-    <td class="$panel.id$.total.count"></td>
-    <td class="$panel.id$.active.count"></td>
-    <td class="$panel.id$.total.count"></td>
+    <td id="$panel.id$.active.week.count"></td>
+    <td id="$panel.id$.total.week.count"></td>
+    <td id="$panel.id$.active.month.count"></td>
+    <td id="$panel.id$.total.month.count"></td>
   </tr>
   <tr>
     <th>Performance</th>
@@ -119,23 +119,18 @@ var stats       = $var-stats$;
 var activeCount = $var-activeCount$;
 var totalCount  = $var-totalCount$;
 
-document.getElementById("$panel.id$.current.week").innerHTML  = stats['current_week'];
-document.getElementById("$panel.id$.current.month").innerHTML = stats['current_month'];
+document.getElementById("$panel.id$.current.week").innerHTML                = stats['current_week'];
+document.getElementById("$panel.id$.current.month").innerHTML               = stats['current_month'];
 
-var activeCountRows = document.getElementsByClassName("$panel.id$.active.count");
-for (var i = 0; i < activeCountRows.length; i++){
-  activeCountRows[i].innerHTML = activeCount + addTimeSpan('2.0');
-}
+document.getElementById("$panel.id$.active.week.count").innerHTML           = activeCount['current_week']  + addTimeSpan('2.0');
+document.getElementById("$panel.id$.total.week.count").innerHTML            = totalCount['current_week']   + addTimeSpan('total');
+document.getElementById("$panel.id$.active.month.count").innerHTML          = activeCount['current_month'] + addTimeSpan('2.0');
+document.getElementById("$panel.id$.total.month.count").innerHTML           = totalCount['current_month']  + addTimeSpan('total');
 
-var totalCountRows = document.getElementsByClassName("$panel.id$.total.count");
-for (var i = 0; i < totalCountRows.length; i++){
-  totalCountRows[i].innerHTML = totalCount + addTimeSpan('total');
-}
-
-document.getElementById("$panel.id$.performance.week.active").innerHTML     = performance(stats['current_week'], activeCount) + ' %';
-document.getElementById("$panel.id$.performance.week.total").innerHTML      = performance(stats['current_week'], totalCount) + ' %';
-document.getElementById("$panel.id$.performance.month.active").innerHTML    = performance(stats['current_month'], activeCount) + ' %';
-document.getElementById("$panel.id$.performance.month.total").innerHTML     = performance(stats['current_month'], totalCount) + ' %';
+document.getElementById("$panel.id$.performance.week.active").innerHTML     = performance(stats['current_week'], activeCount['current_week']) + ' %';
+document.getElementById("$panel.id$.performance.week.total").innerHTML      = performance(stats['current_week'], totalCount['current_week']) + ' %';
+document.getElementById("$panel.id$.performance.month.active").innerHTML    = performance(stats['current_month'], activeCount['current_month']) + ' %';
+document.getElementById("$panel.id$.performance.month.total").innerHTML     = performance(stats['current_month'], totalCount['current_month']) + ' %';
 
 </script>
 
