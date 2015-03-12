@@ -45,44 +45,12 @@
 <table id = "$panel.id$.stats" class="stats" align="center">
   <tr>
     <th/>
-    <th># of songs</th>
+    <th id = "$panel.id$.stat.type"># of songs</th>
     <th>% of all investments</th>
     <th>% of all listens</th>
     <th>Avg coins invested</th>
     <th>Avg listens</th>
   </tr>
-  <!--tr>
-    <th>Top 10</th>
-    <td id="$panel.id$.#10.songs"></td>
-    <td id="$panel.id$.#10.invest"></td>
-    <td id="$panel.id$.#10.plays.count"></td>
-    <td id="$panel.id$.#10.plays.avg"></td>
-    <td id="$panel.id$.#10.coins.avg"></td>
-  </tr>
-  <tr>
-    <th>Top 10%</th>
-    <td id="$panel.id$.top10.songs"></td>
-    <td id="$panel.id$.top10.invest"></td>
-    <td id="$panel.id$.top10.plays.count"></td>
-    <td id="$panel.id$.top10.plays.avg"></td>
-    <td id="$panel.id$.top10.coins.avg"></td>
-  </tr>
-  <tr>
-    <th>Top 50%</th>
-    <td id="$panel.id$.top50.songs"></td>
-    <td id="$panel.id$.top50.invest"></td>
-    <td id="$panel.id$.top50.plays.count"></td>
-    <td id="$panel.id$.top50.plays.avg"></td>
-    <td id="$panel.id$.top50.coins.avg"></td>
-  </tr>
-  <tr>
-    <th>Top 90%</th>
-    <td id="$panel.id$.top90.songs"></td>
-    <td id="$panel.id$.top90.invest"></td>
-    <td id="$panel.id$.top90.plays.count"></td>
-    <td id="$panel.id$.top90.plays.avg"></td>
-    <td id="$panel.id$.top90.coins.avg"></td>
-  </tr-->
 </table>
 
 <script>
@@ -131,21 +99,60 @@ function addTimeSpan(str){
   return '<br><span class="timespan">' + str + '</span>';
 }
 
-var songCount     = $var-songCount$;
+function getArtistArray(songs){
+
+  var artists = {};
+
+  for (var i = 0; i < songs.length; i++){
+    artists[songs[i].song_id] = songs[i].artist_id;
+  }
+
+  return artists;
+}
+
+function groupByArtist(array, key, artists){
+
+  var keys = {};
+  var ret  = [];
+
+  for (var i = 0; i < array.length; i++){
+    var artist_id = artists[array[i].song_id];
+    if (!keys[artist_id]){
+      keys[artist_id] = ret.length;
+
+      var obj = {};
+      obj[key] = array[i][key];
+      obj['artist_id'] = artist_id;
+
+      ret.push(obj);
+    }
+    else {
+      var artistKey = keys[artist_id];
+      ret[artistKey][key] += array[i][key];
+    }
+  }
+
+  return ret;
+}
+
+var statType      = $var-statType$;
+var songs         = $var-songs$;
+
+var statCount     = $var-statCount$;
 var songInvests   = $var-songInvests$;
 var songListens   = $var-songListens$;
+
+if (statType == 'artists'){
+  var artists = getArtistArray(songs);
+  songInvests = groupByArtist(songInvests, 'sum',   artists);
+  songListens = groupByArtist(songListens, 'count', artists);
+}
 
 var investTotal   = songInvests.reduce(function (a,b){ return a + b.sum; }, 0);
 var listenTotal   = songListens.reduce(function (a,b){ return a + b.count; }, 0);
 
-console.log(investTotal);
-console.log(listenTotal);
-
 songInvests   = songInvests.sort(function (a, b){ return b.sum   - a.sum;});
 songListens   = songListens.sort(function (a, b){ return b.count - a.count;});
-
-// console.log(songInvests);
-console.log(songListens);
 
 var rows = [{"title":"Top 10",  count:10},
             {"title":"Top 10%", count:0.1},
@@ -153,11 +160,12 @@ var rows = [{"title":"Top 10",  count:10},
             {"title":"Top 90%", count:0.9}
            ];
 
+document.getElementById("$panel.id$.stat.type").innerHTML  = "# of " + statType;
 var table = document.getElementById("$panel.id$.stats"); 
 
 for (var i = 0; i < rows.length; i++){
 
-  var count              = rows[i].count > 1 ? rows[i].count : Math.round(rows[i].count*songCount);
+  var count              = rows[i].count > 1 ? rows[i].count : Math.round(rows[i].count*statCount);
   var songInvestsPartial = songInvests.slice(0, count); 
   var songListensPartial = songListens.slice(0, count);
 
