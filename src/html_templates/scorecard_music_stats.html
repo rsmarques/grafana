@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.stats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.stats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+  table.stats th {
+    padding: 7px;
+  }
+  .timespan {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<table id = "$panel.id$.stats" class="stats" align="center">
+  <tr>
+    <th/>
+    <th># of songs</th>
+    <th>% of all investments</th>
+    <th>% of all listens</th>
+    <th>Avg coins invested</th>
+    <th>Avg listens</th>
+  </tr>
+  <!--tr>
+    <th>Top 10</th>
+    <td id="$panel.id$.#10.songs"></td>
+    <td id="$panel.id$.#10.invest"></td>
+    <td id="$panel.id$.#10.plays.count"></td>
+    <td id="$panel.id$.#10.plays.avg"></td>
+    <td id="$panel.id$.#10.coins.avg"></td>
+  </tr>
+  <tr>
+    <th>Top 10%</th>
+    <td id="$panel.id$.top10.songs"></td>
+    <td id="$panel.id$.top10.invest"></td>
+    <td id="$panel.id$.top10.plays.count"></td>
+    <td id="$panel.id$.top10.plays.avg"></td>
+    <td id="$panel.id$.top10.coins.avg"></td>
+  </tr>
+  <tr>
+    <th>Top 50%</th>
+    <td id="$panel.id$.top50.songs"></td>
+    <td id="$panel.id$.top50.invest"></td>
+    <td id="$panel.id$.top50.plays.count"></td>
+    <td id="$panel.id$.top50.plays.avg"></td>
+    <td id="$panel.id$.top50.coins.avg"></td>
+  </tr>
+  <tr>
+    <th>Top 90%</th>
+    <td id="$panel.id$.top90.songs"></td>
+    <td id="$panel.id$.top90.invest"></td>
+    <td id="$panel.id$.top90.plays.count"></td>
+    <td id="$panel.id$.top90.plays.avg"></td>
+    <td id="$panel.id$.top90.coins.avg"></td>
+  </tr-->
+</table>
+
+<script>
+
+function is_object(mixed_var) {
+  if (Object.prototype.toString.call(mixed_var) === '[object Array]') {
+    return false;
+  }
+  return mixed_var !== null && typeof mixed_var == 'object';
+}
+
+function merge(a, b, operator) {
+
+  var cache = {};
+  cache = unpackObject(a, cache, operator);
+  cache = unpackObject(b, cache, operator);
+
+  return cache;
+}
+
+function unpackObject(a, cache, operator) {
+  for (prop in a) {
+    if (a.hasOwnProperty(prop)) {
+      if (cache[prop] === undefined) {
+        cache[prop] = a[prop];
+      } else {
+        if (typeof cache[prop] === typeof a[prop]) {
+          if (is_object(a[prop])) {
+            cache[prop] = merge(cache[prop], a[prop]);
+          } else {
+            eval('cache[prop] ' + operator + '= a[prop]');
+          }
+        }
+      }
+    }
+  }
+  return cache;
+}
+
+function performance(a, b){
+
+  return (a/b * 100).toFixed(1);
+}
+
+function addTimeSpan(str){
+  return '<br><span class="timespan">' + str + '</span>';
+}
+
+var songCount     = $var-songCount$;
+var songInvests   = $var-songInvests$;
+var songListens   = $var-songListens$;
+
+var investTotal   = songInvests.reduce(function (a,b){ return a + b.sum; }, 0);
+var listenTotal   = songListens.reduce(function (a,b){ return a + b.count; }, 0);
+
+console.log(investTotal);
+console.log(listenTotal);
+
+songInvests   = songInvests.sort(function (a, b){ return b.sum   - a.sum;});
+songListens   = songListens.sort(function (a, b){ return b.count - a.count;});
+
+// console.log(songInvests);
+console.log(songListens);
+
+var rows = [{"title":"Top 10",  count:10},
+            {"title":"Top 10%", count:0.1},
+            {"title":"Top 50%", count:0.5},
+            {"title":"Top 90%", count:0.9}
+           ];
+
+var table = document.getElementById("$panel.id$.stats"); 
+
+for (var i = 0; i < rows.length; i++){
+
+  var count              = rows[i].count > 1 ? rows[i].count : Math.round(rows[i].count*songCount);
+  var songInvestsPartial = songInvests.slice(0, count); 
+  var songListensPartial = songListens.slice(0, count);
+
+  var investPartial      = songInvestsPartial.reduce(function (a,b){ return a + b.sum;}, 0);
+  var listenPartial      = songListensPartial.reduce(function (a,b){ return a + b.count;}, 0);
+
+  var row   = table.insertRow(i+1);
+  var cell0 = row.insertCell(0);
+  var cell1 = row.insertCell(1);
+  var cell2 = row.insertCell(2);
+  var cell3 = row.insertCell(3);
+  var cell4 = row.insertCell(4);
+
+  th = document.createElement('th');
+  th.innerHTML = rows[i].title;
+  row.insertBefore(th, cell0);
+
+  cell0.innerHTML = count;
+  cell1.innerHTML = performance(investPartial, investTotal) + ' %';
+  cell2.innerHTML = performance(listenPartial, listenTotal) + ' %';
+  cell3.innerHTML = (investPartial/count).toFixed(1);
+  cell4.innerHTML = (listenPartial/count).toFixed(1);
+}
+
+</script>
+
+</body>
+</html>
