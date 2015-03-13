@@ -142,7 +142,7 @@ for (var i = 0; i < performanceData.length; i++){
 		performanceData[i].style.fontSize = "17px";
 	}
 
-	if (isNaN(performance)) {
+	if (isNaN(performance) || performance < 0) {
 		performanceData[i].innerHTML = "--";
 	}
 	else {
