@@ -135,7 +135,7 @@ function (angular, _, kbn) {
 
         return $q.all(promises).then(function (results){
           self.addAllOption(variable);
-          return self.setVariableValue(variable, variable.options[0], false);
+          return self.setVariableValue(variable, variable.options[0], true);
         });
       }
     };

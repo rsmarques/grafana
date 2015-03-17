@@ -146,7 +146,7 @@ for (var i = 0; i < performanceData.length; i++){
 		performanceData[i].innerHTML = "--";
 	}
 	else {
-		performanceData[i].style.backgroundColor = performance >= 100 ?  "green" : performance < 80 ? "red" : "yellow";
+		performanceData[i].style.backgroundColor = performance > 100 ?  "green" : performance < 80 ? "red" : "yellow";
 		// performanceData[i].style.color = performance >= 100 ?  "white" : performance < 80 ? "white" : "black";
 	}
 }
