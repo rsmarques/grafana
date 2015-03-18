@@ -26,20 +26,14 @@
 </head>
 <body>
 
-<!--h4>Title</h4-->
-
 <table class="scorecard" align="center">
-  <!--tr>
-    <td>Measure: </td>
-    <td>$var-measure$</td>
-  </tr-->
   <tr>
     <td>Objective: </td>
-    <td>$var-objective$</td>
+    <td style="font-weight: bold" id="$panel.id$.objective"/>
   </tr>
   <tr>
     <td>Realized: </td>
-    <td>$var-realized$</td>
+    <td style="font-weight: bold" id="$panel.id$.realized"/>
   </tr>
   <tr>
     <td>On Track: </td>
@@ -55,8 +49,14 @@ var logic     = $var-compare$;
 var objective = $var-objective$;
 var realized  = $var-realized$;
 
+document.getElementById("$panel.id$.objective").innerHTML = objective;
+document.getElementById("$panel.id$.realized").innerHTML  = realized;
+
 if (eval(realized + logic + objective)){
   document.getElementById("$panel.id$.onTrack").style.backgroundColor = "green";
+}
+else if (eval(realized + logic + objective * 0.8)){
+  document.getElementById("$panel.id$.onTrack").style.backgroundColor = "yellow";
 }
 else{
   document.getElementById("$panel.id$.onTrack").style.backgroundColor = "red";
