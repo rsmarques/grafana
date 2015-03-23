@@ -285,8 +285,8 @@ require(['../config.js'], function(Settings){
     for (var j = i+1; j < dates.length; j++) {
       var index      = j-i;
       var cell       = row.insertCell(index+1);
-      group          = intersect(group, grouped[dates[j].str]);
-      cell.innerHTML = group.length + addPercentSpan(performance(group.length, initCount));
+      var subGroup   = intersect(group, grouped[dates[j].str]);
+      cell.innerHTML = subGroup.length + addPercentSpan(performance(subGroup.length, initCount));
     }
   }
 
