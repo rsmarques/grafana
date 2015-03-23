@@ -60,8 +60,10 @@ function (angular, app, _, require, PanelMeta) {
         //     }
         // });
 
-        var templates = ['dashboard_artists',
+        var templates = ['cohort_analysis',
+                     'dashboard_artists',
                      'dashboard_au',
+                     'dashboard_cheaters',
                      'dashboard_wmau',
                      'dashboard_performance',
                      'dashboard_performance_wm',

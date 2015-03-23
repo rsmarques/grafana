@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+  table.scorecard {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.scorecard td {
+    border-width: 1px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid transparent;
+  }
+
+  table.stats {
+    margin-left:auto; 
+    margin-right:auto;
+    font-size:13px;
+    border-width: 1px;
+    border-collapse: collapse;
+  }
+  table.stats td {
+    border-width: 1px;
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+    border-style: solid;
+  }
+  table.stats th {
+    padding: 7px;
+  }
+  .percent_span {
+    font-size: 14px;
+    color: #888;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<table id = "$panel.id$.cohort" class="stats" align="center">
+    <thead>
+      <th>Date</th>
+      <th># Users</th>
+    </thead>
+</table>
+
+
+<script>
+
+function is_object(mixed_var) {
+  if (Object.prototype.toString.call(mixed_var) === '[object Array]') {
+    return false;
+  }
+  return mixed_var !== null && typeof mixed_var == 'object';
+}
+
+function merge(a, b, operator) {
+
+  var cache = {};
+  cache = unpackObject(a, cache, operator);
+  cache = unpackObject(b, cache, operator);
+
+  return cache;
+}
+
+function unpackObject(a, cache, operator) {
+  for (prop in a) {
+    if (a.hasOwnProperty(prop)) {
+      if (cache[prop] === undefined) {
+        cache[prop] = a[prop];
+      } else {
+        if (typeof cache[prop] === typeof a[prop]) {
+          if (is_object(a[prop])) {
+            cache[prop] = merge(cache[prop], a[prop]);
+          } else {
+            eval('cache[prop] ' + operator + '= a[prop]');
+          }
+        }
+      }
+    }
+  }
+  return cache;
+}
+
+function performance(a, b){
+
+  return (a/b * 100).toFixed(1);
+}
+
+function addPercentSpan(str){
+
+  var color = getColor(str);
+  return '<br><span style="color:' + color + '" class="percent_span">' + str + '%' + '</span>';
+}
+
+function getColor(val){
+
+  if      (val >= 75) return '#006600';
+  else if (val >= 55) return '#006633';
+  else if (val >= 25) return '#009900';
+  else                return '#009933';
+}
+
+function getInfluxDbData(query, datasource, settings){
+
+  var username    = settings.datasources[datasource].username;
+  var password    = settings.datasources[datasource].password;
+  var url         = settings.datasources[datasource].url;
+
+  var getUrl      = url + '/series?q=' + query + '&u=' + username + '&p=' + password;
+  var result;
+
+  $.ajax({
+
+    url: getUrl,
+    async: false,  
+    success: function (data) {
+      result = arrangeInfluxDbData(data);
+    }
+  });
+
+  return result;
+}
+
+function arrangeInfluxDbData(data) {
+
+  data     = data[0];
+  points   = data['points'];
+  columns  = data['columns'];
+
+  result = _.map(points, function(value, key){
+    var obj = {};
+
+    for (var i = 0; i < value.length; i++){
+      obj[columns[i]] = value[i];
+    }
+
+    return obj;
+  });
+
+  return result;
+}
+
+function groupByKey(array, key){
+
+  // [] or {} ??? To think
+  var obj = {};
+
+  for (var i = 0; i < array.length; i++){
+
+    var point = array[i];
+    var keyValue = point[key];
+    if (!obj[keyValue]){
+      obj[keyValue] = [];
+    }
+    obj[keyValue].push(point);
+  }
+
+  return obj;
+
+}
+
+function getMonday(d) {
+
+  d = new Date(d);
+  var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
+  return new Date(d.setDate(diff));
+}
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
+function datesBetween(timespan, startDate, endDate){
+
+  var dates   = [];
+  var now     = new Date();
+  var current = new Date(startDate);
+
+  if (timespan == 'm') current.setDate(1);
+  else if (timespan == 'w') current = getMonday(startDate);
+
+  while (current < now) {
+
+    dates.push({'date' : new Date(current), 'str' : formatDate(current)}); 
+    switch(timespan) {
+      case 'd':
+        current.setDate(current.getDate()+1);
+        break;
+      case 'w':
+        current.setDate(current.getDate()+7);
+        break;
+      case 'm':
+        current.setMonth(current.getMonth() + 1, 1);
+        break;
+      default:
+        current.setDate(current.getDate()+7);
+    }
+  }
+
+  return dates;
+}
+
+//groups data by an array of timestamps
+function groupByTime(dates, data){
+
+  var obj       = {};
+  var dataIndex = 0;
+
+  for (var i = 0; i < dates.length; i++){
+    var d = [];
+    startDate = dates[i].date;
+    endDate   = i == dates.length - 1 ? new Date() : dates[i+1].date;
+    while (dataIndex < data.length && new Date(data[dataIndex].time) >= startDate && new Date(data[dataIndex].time) < endDate){
+      var value = data[dataIndex].distinct;
+      if (d.indexOf(value) == -1) d.push(value);
+      dataIndex++;
+    }
+    obj[dates[i].str] = d;
+  }
+
+  return obj;
+
+}
+
+function intersect(array1, array2){
+  return array1.filter(function(n) {
+    return array2.indexOf(n) != -1
+  });
+}
+
+require(['../config.js'], function(Settings){
+
+  var gameDatasource       = "tradiio_game";
+  var analyticsDatasource  = "tradiio_analytics";
+
+  var table                = "nysa.api.users.active.count";
+  var key                  = "user_id";
+  var startDate            = $var-startDate$;
+  var timespan             = $var-timespan$;
+  var now                  = new Date();
+
+  var continuousTable      = table + ".1d.distinct";
+
+  var dates = datesBetween(timespan, startDate);
+
+  var start = dates[0].str;
+  var cohortQuery          = "select * from " + continuousTable + " where time > '" + start + "' order asc";
+  var users   = getInfluxDbData(cohortQuery, gameDatasource, Settings);
+
+  var grouped = groupByTime(dates, users);
+
+  var table  = document.getElementById("$panel.id$.cohort"); 
+  var header = table.tHead.children[0];
+
+  for (var i = 0; i < dates.length; i++) {
+    var row            = table.insertRow(i+1);
+    var dateCell       = row.insertCell(0);
+    var initCell       = row.insertCell(1);
+    var group          = grouped[dates[i].str];
+    
+    dateCell.innerHTML = dates[i].str;
+    initCell.innerHTML = group.length;
+    initCount          = group.length;
+
+    if (i < dates.length - 1) {
+      th = document.createElement('th');
+      th.innerHTML = i + 1;
+      header.appendChild(th);
+    }
+
+    for (var j = i+1; j < dates.length; j++) {
+      var index      = j-i;
+      var cell       = row.insertCell(index+1);
+      group          = intersect(group, grouped[dates[j].str]);
+      cell.innerHTML = group.length + addPercentSpan(performance(group.length, initCount));
+    }
+  }
+
+});
+
+</script>
+
+</body>
+</html>
