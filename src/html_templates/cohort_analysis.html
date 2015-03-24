@@ -34,8 +34,8 @@
     padding: 7px;
   }
   .percent_span {
-    font-size: 14px;
-    color: #888;
+    font-size: 13px;
+    color: #BBB;
     text-align: center;
   }
 </style>
@@ -94,16 +94,28 @@ function performance(a, b){
 
 function addPercentSpan(str){
 
-  var color = getColor(str);
-  return '<br><span style="color:' + color + '" class="percent_span">' + str + '%' + '</span>';
+  return '<br><span class="percent_span">' + str + ' %' + '</span>';
 }
 
 function getColor(val){
 
-  if      (val >= 75) return '#006600';
-  else if (val >= 50) return '#006633';
-  else if (val >= 25) return '#009900';
-  else                return '#009933';
+  // if      (val >= 80) return '#26AFDA';
+  // else if (val >= 45) return '#2094B7';
+  // else if (val >= 30) return '#1A718C';
+  // else if (val >= 15) return '#134F63';
+  // else                return '#0D2C37';
+
+  if      (val >= 80) return '#DA5126';
+  else if (val >= 60) return '#B74320';
+  else if (val >= 40) return '#8C351A';
+  else if (val >= 20) return '#632713';
+  else                return '#37180D';
+
+  // if      (val >= 80) return '#3F636A';
+  // else if (val >= 60) return '#3C4D51';
+  // else if (val >= 40) return '#323A3B';
+  // else if (val >= 20) return '#272A2B';
+  // else                return '#212323';
 }
 
 function getInfluxDbData(query, datasource, settings){
@@ -257,7 +269,6 @@ function getTable(behaviour) {
     default:
       return {"table" : "nysa.api.events." + behaviour + ".count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"}; 
   }
-
 }
 
 require(['../config.js'], function(Settings){
@@ -283,6 +294,7 @@ require(['../config.js'], function(Settings){
 
   var table  = document.getElementById("$panel.id$.cohort"); 
   var header = table.tHead.children[0];
+  var maxPerformance = 0;
 
   for (var i = 0; i < dates.length; i++) {
     var row            = table.insertRow(i+1);
@@ -301,12 +313,23 @@ require(['../config.js'], function(Settings){
     }
 
     for (var j = i+1; j < dates.length; j++) {
-      var index      = j-i;
-      var cell       = row.insertCell(index+1);
-      var subGroup   = intersect(group, nextGroup[dates[j].str]);
-      cell.innerHTML = subGroup.length + addPercentSpan(performance(subGroup.length, initCount));
+      var index         = j-i;
+      var cell          = row.insertCell(index+1);
+      var subGroup      = intersect(group, nextGroup[dates[j].str]);
+      var perf          = performance(subGroup.length, initCount);
+      if (!isNaN(perf)) maxPerformance = perf > maxPerformance ? perf : maxPerformance;
+      cell.innerHTML    = subGroup.length + addPercentSpan(performance(subGroup.length, initCount));
     }
   }
+
+  $("#$panel.id$\\.cohort span").each(function() {
+
+    var span = $(this)[0];
+    var perf = Number(span.innerHTML.split(" ")[0]);
+    if (!isNaN(perf)){
+      span.parentNode.style.backgroundColor = getColor(performance(perf, maxPerformance));
+    }
+  });
 
 });
 
