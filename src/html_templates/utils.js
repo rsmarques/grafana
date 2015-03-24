@@ -166,6 +166,11 @@ function datesBetween(timespan, startDate, endDate){
   return dates;
 }
 
+//Style functions
+function addTimeSpan(str){
+  return '<br><span class="timespan">' + str + '</span>';
+}
+
 
 //Simple funtion utils
 function performance(a, b){

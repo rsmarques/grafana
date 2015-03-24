@@ -39,6 +39,7 @@
     text-align: center;
   }
 </style>
+<script type"text/javascript" src="html_templates/utils.js"></script>
 </head>
 <body>
 
@@ -70,50 +71,6 @@
 </table>
 
 <script>
-
-function is_object(mixed_var) {
-  if (Object.prototype.toString.call(mixed_var) === '[object Array]') {
-    return false;
-  }
-  return mixed_var !== null && typeof mixed_var == 'object';
-}
-
-function merge(a, b, operator) {
-
-  var cache = {};
-  cache = unpackObject(a, cache, operator);
-  cache = unpackObject(b, cache, operator);
-
-  return cache;
-}
-
-function unpackObject(a, cache, operator) {
-  for (prop in a) {
-    if (a.hasOwnProperty(prop)) {
-      if (cache[prop] === undefined) {
-        cache[prop] = a[prop];
-      } else {
-        if (typeof cache[prop] === typeof a[prop]) {
-          if (is_object(a[prop])) {
-            cache[prop] = merge(cache[prop], a[prop]);
-          } else {
-            eval('cache[prop] ' + operator + '= a[prop]');
-          }
-        }
-      }
-    }
-  }
-  return cache;
-}
-
-function performance(a, b){
-
-	return (a/b * 100).toFixed(1);
-}
-
-function addTimeSpan(str){
-	return '<br><span class="timespan">' + str + '</span>';
-}
 
 var stats = $var-stats$;
 
