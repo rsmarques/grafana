@@ -1,42 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style type="text/css">
-  table.scorecard {
-    margin-left:auto; 
-    margin-right:auto;
-    font-size:13px;
-    border-width: 1px;
-    border-collapse: collapse;
-  }
-  table.scorecard td {
-    border-width: 1px;
-    padding: 8px;
-    font-size: 14px;
-    text-align: center;
-    border-style: solid transparent;
-  }
-
-  table.levelStats {
-    margin-left:auto; 
-    margin-right:auto;
-    font-size:13px;
-    border-width: 1px;
-    border-collapse: collapse;
-  }
-  table.levelStats td {
-    border-width: 1px;
-    padding: 5px;
-    font-size: 14px;
-    text-align: center;
-    border-style: solid;
-  }
-</style>
+<link rel="stylesheet" href="html_templates/templates.css">
 <script type"text/javascript" src="html_templates/utils.js"></script>
 </head>
 <body>
-
-<!-- <h4>User Levels</h4> -->
 
 <table class="scorecard" align="center">
   <tr>
@@ -55,7 +23,7 @@
 
 <p>--------------</p>
 
-<table id = "$panel.id$.levelStats" class="levelStats" align="center">
+<table id = "$panel.id$.levelStats" class="stats" align="center">
   <caption>Number of Users by Level</caption>
   <tr>
     <th>Level</th>

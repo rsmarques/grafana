@@ -1,37 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style type="text/css">
-  table.scorecard {
-    margin-left:auto; 
-    margin-right:auto;
-    font-size:13px;
-    border-width: 1px;
-    border-collapse: collapse;
-  }
-  table.scorecard td {
-    border-width: 1px;
-    padding: 8px;
-    font-size: 14px;
-    text-align: center;
-    border-style: solid transparent;
-  }
-
-  table.referralStats {
-    margin-left:auto; 
-    margin-right:auto;
-    font-size:13px;
-    border-width: 1px;
-    border-collapse: collapse;
-  }
-  table.referralStats td {
-    border-width: 1px;
-    padding: 5px;
-    font-size: 14px;
-    text-align: center;
-    border-style: solid;
-  }
-</style>
+<link rel="stylesheet" href="html_templates/templates.css">
 <script type"text/javascript" src="html_templates/utils.js"></script>
 </head>
 <body>
@@ -56,7 +26,7 @@
 
 <p>--------------</p>
 
-<table id = "$panel.id$.referralStats" class="referralStats" align="center">
+<table id = "$panel.id$.referralStats" class="stats" align="center">
   <caption>Top 10 Referrers</caption>
   <tr>
     <th>id</th>
