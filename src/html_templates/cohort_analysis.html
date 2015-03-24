@@ -316,8 +316,8 @@ require(['../config.js'], function(Settings){
       var index         = j-i;
       var cell          = row.insertCell(index+1);
       var subGroup      = intersect(group, nextGroup[dates[j].str]);
-      var perf          = performance(subGroup.length, initCount);
-      if (!isNaN(perf)) maxPerformance = perf > maxPerformance ? perf : maxPerformance;
+      var perf          = Number(performance(subGroup.length, initCount));
+      if (!isNaN(perf) && perf > maxPerformance) maxPerformance = perf;
       cell.innerHTML    = subGroup.length + addPercentSpan(performance(subGroup.length, initCount));
     }
   }
