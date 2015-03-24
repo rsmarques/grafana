@@ -94,27 +94,28 @@ function performance(a, b){
 
 function addPercentSpan(str){
 
-  return '<br><span class="percent_span">' + str + ' %' + '</span>';
+  if (!isNaN(str)) return '<br><span class="percent_span">' + str  + '%' + '</span>';
+  else             return '';
 }
 
 function getColor(val){
 
-  // if      (val >= 80) return '#26AFDA';
-  // else if (val >= 45) return '#2094B7';
-  // else if (val >= 30) return '#1A718C';
-  // else if (val >= 15) return '#134F63';
+  // if      (val >= 75) return '#26AFDA';
+  // else if (val >= 50) return '#2094B7';
+  // else if (val >= 25) return '#1A718C';
+  // else if (val >   0) return '#134F63';
   // else                return '#0D2C37';
 
-  if      (val >= 80) return '#DA5126';
-  else if (val >= 60) return '#B74320';
-  else if (val >= 40) return '#8C351A';
-  else if (val >= 20) return '#632713';
+  if      (val >= 75) return '#DA5126';
+  else if (val >= 50) return '#B74320';
+  else if (val >= 25) return '#8C351A';
+  else if (val >   0) return '#632713';
   else                return '#37180D';
 
-  // if      (val >= 80) return '#3F636A';
-  // else if (val >= 60) return '#3C4D51';
-  // else if (val >= 40) return '#323A3B';
-  // else if (val >= 20) return '#272A2B';
+  // if      (val >= 75) return '#3F636A';
+  // else if (val >= 50) return '#3C4D51';
+  // else if (val >= 25) return '#323A3B';
+  // else if (val >   0) return '#272A2B';
   // else                return '#212323';
 }
 
@@ -325,7 +326,7 @@ require(['../config.js'], function(Settings){
   $("#$panel.id$\\.cohort span").each(function() {
 
     var span = $(this)[0];
-    var perf = Number(span.innerHTML.split(" ")[0]);
+    var perf = Number(span.innerHTML.split("%")[0]);
     if (!isNaN(perf)){
       span.parentNode.style.backgroundColor = getColor(performance(perf, maxPerformance));
     }
