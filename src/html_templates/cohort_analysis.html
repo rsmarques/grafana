@@ -101,7 +101,7 @@ function addPercentSpan(str){
 function getColor(val){
 
   if      (val >= 75) return '#006600';
-  else if (val >= 55) return '#006633';
+  else if (val >= 50) return '#006633';
   else if (val >= 25) return '#009900';
   else                return '#009933';
 }
@@ -215,7 +215,7 @@ function datesBetween(timespan, startDate, endDate){
 }
 
 //groups data by an array of timestamps
-function groupByTime(dates, data){
+function groupByTime(dates, data, key){
 
   var obj       = {};
   var dataIndex = 0;
@@ -225,7 +225,7 @@ function groupByTime(dates, data){
     startDate = dates[i].date;
     endDate   = i == dates.length - 1 ? new Date() : dates[i+1].date;
     while (dataIndex < data.length && new Date(data[dataIndex].time) >= startDate && new Date(data[dataIndex].time) < endDate){
-      var value = data[dataIndex].distinct;
+      var value = data[dataIndex][key];
       if (d.indexOf(value) == -1) d.push(value);
       dataIndex++;
     }
@@ -236,32 +236,50 @@ function groupByTime(dates, data){
 
 }
 
-function intersect(array1, array2){
+function intersect(array1, array2) {
   return array1.filter(function(n) {
     return array2.indexOf(n) != -1
   });
 }
 
-require(['../config.js'], function(Settings){
+function getTable(behaviour) {
 
   var gameDatasource       = $var-gameDatasource$;
   var analyticsDatasource  = $var-analyticsDatasource$;
 
-  var table                = "nysa.api.users.active.count";
-  var key                  = "user_id";
+  switch (behaviour){
+    case 'all':
+      return {"table" : "nysa.api.users.active.count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"};
+      break;
+    case 'sign_up':
+      return {"table" : "nysa.api.users.registered.count", "datasource" : analyticsDatasource, "key" : "user_id"};
+      break;
+    default:
+      return {"table" : "nysa.api.events." + behaviour + ".count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"}; 
+  }
+
+}
+
+require(['../config.js'], function(Settings){
+
   var startDate            = $var-startDate$;
   var timespan             = $var-timespan$;
-  var now                  = new Date();
+  var initialBehaviour     = $var-initialBehaviour$;
+  var nextBehaviour        = $var-nextBehaviour$;
 
-  var continuousTable      = table + ".1d.distinct";
+  var initialTable         = getTable(initialBehaviour);
+  var nextTable            = getTable(nextBehaviour);
 
   var dates = datesBetween(timespan, startDate);
-
   var start = dates[0].str;
-  var cohortQuery          = "select * from " + continuousTable + " where time > '" + start + "' order asc";
-  var users   = getInfluxDbData(cohortQuery, gameDatasource, Settings);
+  var initialQuery = "select * from " + initialTable.table + " where time > '" + start + "' order asc";
+  var nextQuery    = "select * from " + nextTable.table    + " where time > '" + start + "' order asc";
 
-  var grouped = groupByTime(dates, users);
+  var initialData   = getInfluxDbData(initialQuery, initialTable.datasource, Settings);
+  var nextData      = getInfluxDbData(nextQuery, nextTable.datasource, Settings);
+
+  var initialGroup = groupByTime(dates, initialData, initialTable.key);
+  var nextGroup    = groupByTime(dates, nextData, nextTable.key);
 
   var table  = document.getElementById("$panel.id$.cohort"); 
   var header = table.tHead.children[0];
@@ -270,7 +288,7 @@ require(['../config.js'], function(Settings){
     var row            = table.insertRow(i+1);
     var dateCell       = row.insertCell(0);
     var initCell       = row.insertCell(1);
-    var group          = grouped[dates[i].str];
+    var group          = initialGroup[dates[i].str];
     
     dateCell.innerHTML = dates[i].str;
     initCell.innerHTML = group.length;
@@ -285,7 +303,7 @@ require(['../config.js'], function(Settings){
     for (var j = i+1; j < dates.length; j++) {
       var index      = j-i;
       var cell       = row.insertCell(index+1);
-      var subGroup   = intersect(group, grouped[dates[j].str]);
+      var subGroup   = intersect(group, nextGroup[dates[j].str]);
       cell.innerHTML = subGroup.length + addPercentSpan(performance(subGroup.length, initCount));
     }
   }
