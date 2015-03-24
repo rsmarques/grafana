@@ -87,18 +87,6 @@ function groupByLevel(levels, totalCoins, invested, inWallet){
   return occs;
 }
 
-function sum(array){
-  return array.reduce(function(a, b) { return a + b });
-}
-
-function average(array){
-  return (sum(array)/array.length).toFixed(1);
-}
-
-function percentage(a, b){
-  return (a/b*100).toFixed(1);
-}
-
 var userLevels     = $var-userLevels$;
 var userTotalCoins = $var-userTotalCoins$;
 var userInvested   = $var-userInvested$;
@@ -110,8 +98,8 @@ var avgInWallet   = average(userInWallet);
 var maxTotalCoins = userTotalCoins.reduce(function(a,b){ return a > b ? a : b});
 
 document.getElementById("$panel.id$.average").innerHTML    = avgTotalCoins;
-document.getElementById("$panel.id$.invested").innerHTML   = avgInvested + ' (' + percentage(avgInvested, avgTotalCoins) + '%)';
-document.getElementById("$panel.id$.wallet").innerHTML     = avgInWallet + ' (' + percentage(avgInWallet, avgTotalCoins) + '%)';
+document.getElementById("$panel.id$.invested").innerHTML   = avgInvested + ' (' + performance(avgInvested, avgTotalCoins) + '%)';
+document.getElementById("$panel.id$.wallet").innerHTML     = avgInWallet + ' (' + performance(avgInWallet, avgTotalCoins) + '%)';
 document.getElementById("$panel.id$.max").innerHTML        = maxTotalCoins;
 
 var table = document.getElementById("$panel.id$.coinStats"); 
@@ -129,8 +117,8 @@ for (var i=0; i < levels.length; i++){
     var cell3 = row.insertCell(3);
     cell0.innerHTML = level;
     cell1.innerHTML = (stats[level].totalCoins / stats[level].count).toFixed(1);
-    cell2.innerHTML = percentage(stats[level].invested, stats[level].totalCoins) + ' %';
-    cell3.innerHTML = percentage(stats[level].inWallet, stats[level].totalCoins) + ' %';
+    cell2.innerHTML = performance(stats[level].invested, stats[level].totalCoins) + ' %';
+    cell3.innerHTML = performance(stats[level].inWallet, stats[level].totalCoins) + ' %';
 }
 
 </script>

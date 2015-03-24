@@ -63,25 +63,6 @@
 
 <script>
 
-function sum(array){
-  return array.reduce(function(a, b) { return a + b });
-}
-
-function average(array){
-
-  var total = 0;
-
-  for(var i = 0; i < array.length; i++) {
-      total += array[i];
-  }
-
-  return (total/array.length);
-}
-
-function percentage(a, b){
-  return (a/b*100).toFixed(1);
-}
-
 function countGenres(stats, genreArray, genreCount, type){
 
   for (var i = 0; i < genreArray.length; i++){
@@ -157,11 +138,11 @@ for (var i=0; i < genres.length; i++){
     var cell4 = row.insertCell(4);
     var cell5 = row.insertCell(5);
     cell0.innerHTML = genre;
-    cell1.innerHTML = percentage(stats[genre].users, userCount) + ' %'; 
-    cell2.innerHTML = percentage(stats[genre].users, prefsCount) + ' %'; 
-    cell3.innerHTML = percentage(stats[genre].songs, songCount) + ' %'; 
-    cell4.innerHTML = percentage(stats[genre].listened, listenedCount) + ' %'; 
-    cell5.innerHTML = percentage(stats[genre].invested, investedCount) + ' %';
+    cell1.innerHTML = performance(stats[genre].users, userCount) + ' %'; 
+    cell2.innerHTML = performance(stats[genre].users, prefsCount) + ' %'; 
+    cell3.innerHTML = performance(stats[genre].songs, songCount) + ' %'; 
+    cell4.innerHTML = performance(stats[genre].listened, listenedCount) + ' %'; 
+    cell5.innerHTML = performance(stats[genre].invested, investedCount) + ' %';
 }
 
 </script>

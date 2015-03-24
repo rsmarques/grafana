@@ -69,21 +69,6 @@ function parseTimeSlot(timeSlot) {
   return time;
 }
 
-function sum(array){
-  return array.reduce(function(a, b) { return a + b });
-}
-
-function average(array){
-
-  var total = 0;
-
-  for(var i = 0; i < array.length; i++) {
-      total += array[i];
-  }
-
-  return (total/array.length);
-}
-
 var userActiveCount       = $var-userActiveCount$;
 var userActiveTotal       = $var-userActiveTotal$;
 var timeSlot              = parseTimeSlot($var-timeSlot$);

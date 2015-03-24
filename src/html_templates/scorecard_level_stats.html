@@ -65,17 +65,6 @@
 
 <script>
 
-function occurrences(array){
-
-  var occs = {};
-
-  for(var i = 0; i< array.length; i++) {
-      var n   = array[i];
-      occs[n] = occs[n] ? occs[n] + 1 : 1;
-  }
-  return occs;
-}
-
 var userLevels = $var-userLevels$.sort(function(a, b){return a-b});;
 
 var sum   = userLevels.reduce(function(a, b) { return a + b });
