@@ -6,163 +6,87 @@
 </head>
 <body>
 
-<p>Cheaters Dashboard</p>
+<p>Calculating Cheaters...
+  <progress id="$panel.id$.progress" style="background-color:#fff" value="0" max="100"></progress>
+</p>
 
 <script>
 
-function is_object(mixed_var) {
-  if (Object.prototype.toString.call(mixed_var) === '[object Array]') {
-    return false;
-  }
-  return mixed_var !== null && typeof mixed_var == 'object';
-}
+function getUniqueArtistInvestors(Settings){
 
-function merge(a, b, operator) {
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$;
 
-  var cache = {};
-  cache = unpackObject(a, cache, operator);
-  cache = unpackObject(b, cache, operator);
+  var investmentArtistsCountQuery   = "select count(distinct(artist_id)) from nysa.api.events.invest.count group by user_id";
+  var investmentSongsCountQuery     = "select count(distinct(song_id)) from nysa.api.events.invest.count group by user_id";
+  var investmentUsersCountQuery     = "select count(user_id) from nysa.api.events.invest.count group by user_id";
 
-  return cache;
-}
+  var investArtists = getInfluxDbData(investmentArtistsCountQuery, gameDatasource, Settings);  
+  var investSongs   = getInfluxDbData(investmentSongsCountQuery, gameDatasource, Settings);  
+  var investUsers   = getInfluxDbData(investmentUsersCountQuery, gameDatasource, Settings);  
+  // console.log(investUsers);
+  investArtists = groupByKey(investArtists, 'user_id');
+  investSongs   = groupByKey(investSongs, 'user_id');
+  investUsers   = groupByKey(investUsers, 'user_id');
 
-function unpackObject(a, cache, operator) {
-  for (prop in a) {
-    if (a.hasOwnProperty(prop)) {
-      if (cache[prop] === undefined) {
-        cache[prop] = a[prop];
-      } else {
-        if (typeof cache[prop] === typeof a[prop]) {
-          if (is_object(a[prop])) {
-            cache[prop] = merge(cache[prop], a[prop]);
-          } else {
-            eval('cache[prop] ' + operator + '= a[prop]');
-          }
-        }
-      }
+  document.getElementById("$panel.id$.progress").value = 50;
+
+  var users = Object.keys(investUsers);
+  var uniqueInvestors = [];
+  var uniqueArtists   = [];
+  var uniqueSongs     = [];
+
+  for (var i = 0; i < users.length; i++) {
+
+    var user        = users[i];
+    var investCount = investUsers[user].count;
+    var artistCount = investArtists[user].count;
+    var songCount   = investSongs[user].count;
+
+    if (investCount > 1 && artistCount == 1) {
+      uniqueInvestors.push(parseInt(user));
     }
   }
-  return cache;
-}
+  
+  var inClause = '(' + uniqueInvestors.join() + ')';
+  var uniqueInvestsQuery = "select count(distinct(user_id)) from nysa.api.events.invest.count where user_id in " + inClause + " group by artist_id";
+  var sumInvestsQuery = "select sum(value) from nysa.api.events.invest.count where user_id in " + inClause + " group by artist_id";
 
-function performance(a, b){
+  var uniqueInvests = getInfluxDbData(uniqueInvestsQuery, gameDatasource, Settings);
+  var sumInvests    = getInfluxDbData(sumInvestsQuery, gameDatasource, Settings);
 
-	return (a/b * 100).toFixed(1);
-}
+  uniqueInvests   = uniqueInvests.sort(function (a, b){ return b.count - a.count;});
+  sumInvests      = sumInvests.sort(function (a, b){ return b.sum - a.sum;});
 
-function addTimeSpan(str){
-	return '<br><span class="timespan">' + str + '</span>';
-}
+  console.log(uniqueInvests);
+  console.log(sumInvests);
 
-function getInfluxDbData(query, datasource, settings){
-
-  var username    = settings.datasources[datasource].username;
-  var password    = settings.datasources[datasource].password;
-  var url         = settings.datasources[datasource].url;
-
-  var getUrl      = url + '/series?q=' + query + '&u=' + username + '&p=' + password;
-  var result;
-
-  $.ajax({
-
-    url: getUrl,
-    async: false,  
-    success: function (data) {
-      result = arrangeInfluxDbData(data);
-    }
-  });
-
-  return result;
-}
-
-function arrangeInfluxDbData(data) {
-
-  data     = data[0];
-  points   = data['points'];
-  columns  = data['columns'];
-
-  result = _.map(points, function(value, key){
-    var obj = {};
-
-    for (var i = 0; i < value.length; i++){
-      obj[columns[i]] = value[i];
-    }
-
-    return obj;
-  });
-
-  return result;
-}
-
-function getArtistArray(songs){
-
-  var artists = {};
-
-  for (var i = 0; i < songs.length; i++){
-    artists[songs[i].song_id] = songs[i].artist_id;
-  }
-
-  return artists;
-}
-
-function groupByKey(array, key){
-
-  // [] or {} ??? To think
-  var obj = {};
-
-  for (var i = 0; i < array.length; i++){
-
-    var point = array[i];
-    var keyValue = point[key];
-    if (!obj[keyValue]){
-      obj[keyValue] = [];
-    }
-    obj[keyValue].push(point);
-  }
-
-  return obj;
-
-}
-
-function getUniqueArtistInvestors(artists, songs){
-
-  var gameDatasource       = "tradiio_game";
-  var analyticsDatasource  = "tradiio_analytics";
-
-  var investmentSongsQuery = "select distinct(song_id) from nysa.api.events.invest.count group by user_id";
-
-  investmentSongsQuery = investmentSongsQuery.sort(function (a, b){ return b.count - a.count;});
-
-
+  document.getElementById("$panel.id$.progress").value = 100;
 
 }
 
 require(['../config.js'], function(Settings){
 
-  var gameDatasource       = "tradiio_game";
-  var analyticsDatasource  = "tradiio_analytics";
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$;
 
   var profitsPosQuery      = "select count(user_id) from nysa.api.users.profit.count where profit >  20 group by user_id, time(1h)";
   var profitsNegQuery      = "select count(user_id) from nysa.api.users.profit.count where profit < -20 group by user_id, time(1h)";
   var songsQuery           = "select song_id, artist_id from nysa.api.songs.valid.count";
   var artistsQuery         = "select * from nysa.api.artists.valid.count";
 
+  var uniqueArtistInvestors = getUniqueArtistInvestors(Settings);
 
-  var songs   = getInfluxDbData(songsQuery, analyticsDatasource, Settings);
-  var artists = getArtistArray(songs);
+  // var profitsPosUsers = getInfluxDbData(profitsPosQuery, gameDatasource, Settings);
+  // var profitsNegUsers = getInfluxDbData(profitsNegQuery, gameDatasource, Settings);
 
-  var uniqueArtistInvestors = getUniqueArtistInvestors(artists, songs);
+  // profitsPosUsers = profitsPosUsers.sort(function (a, b){ return b.count   - a.count;});
 
-  var profitsPosUsers = getInfluxDbData(profitsPosQuery, gameDatasource, Settings);
-  var profitsNegUsers = getInfluxDbData(profitsNegQuery, gameDatasource, Settings);
+  // profitsPosUsers = profitsPosUsers.filter(function (value) {
+  //   return value.count > 2;
+  // });
 
-  profitsPosUsers = profitsPosUsers.sort(function (a, b){ return b.count   - a.count;});
-
-  profitsPosUsers = profitsPosUsers.filter(function (value) {
-    return value.count > 2;
-  });
-
-  console.log(profitsPosUsers);
+  // console.log(profitsPosUsers);
 
 });
 

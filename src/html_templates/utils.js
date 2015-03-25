@@ -82,12 +82,12 @@ function groupByKey(array, key){
 
   for (var i = 0; i < array.length; i++){
 
-    var point = array[i];
-    var keyValue = point[key];
-    if (!obj[keyValue]){
-      obj[keyValue] = [];
-    }
-    obj[keyValue].push(point);
+    var point     = array[i];
+    var value     = point[key];
+    // if (!obj[keyValue]){
+    //   obj[keyValue] = [];
+    // }
+    obj[value]    = point;
   }
 
   return obj;
