@@ -18,6 +18,18 @@ function (angular, _, kbn) {
       }
     });
 
+    $rootScope.onAppEvent('refresh', function() {
+
+      var variables = self.variables;
+
+      for (var i = 0; i < variables.length; i++) {
+        var variable = variables[i];
+        if (variable.refresh) {
+          self.updateOptions(variable);
+        }
+      }
+    });
+
     this.init = function(dashboard, viewstate) {
       this.variables = dashboard.templating.list;
       this.viewstate = viewstate;
@@ -134,6 +146,7 @@ function (angular, _, kbn) {
         }
 
         return $q.all(promises).then(function (results){
+          variable.options = results;
           self.addAllOption(variable);
           return self.setVariableValue(variable, variable.options[0], true);
         });
@@ -150,7 +163,8 @@ function (angular, _, kbn) {
           var result  = results.length > 0 ? results[0].text : 0;
           var key     = '"' + objName + '":' + result;
 
-          variable.options.push({text: key, value: key});
+          // variable.options.push({text: key, value: key});
+          return {text: key, value: key};
 
         });      
     };    
