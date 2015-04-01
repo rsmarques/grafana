@@ -123,19 +123,20 @@ function (angular, _, kbn) {
         time[key] = kbn.formatDate(value);
       });
 
-      var nowInfluxDb = previousDate ? time['current_day']+'+1d' : 'now()';
+      var nowInfluxDb   = previousDate ? time['current_day']+'+1d' : 'now()';
+      var relativeMonth = kbn.parseDate(now + '+1d').getMonth() != kbn.parseDate(now).getMonth() ? time['current_month'] : nowInfluxDb + '-30d';
 
       stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['current_day'],   nowInfluxDb), "var" : "current_day"});
       stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['current_week'],  nowInfluxDb), "var" : "current_week"});
       stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['current_month'], nowInfluxDb), "var" : "current_month"});
 
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_day'],   time['current_day']), "var" : "previous_day"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_week'],  time['current_week']), "var" : "previous_week"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_day'],   time['current_day']),   "var" : "previous_day"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_week'],  time['current_week']),  "var" : "previous_week"});
       stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_month'], time['current_month']), "var" : "previous_month"});
 
       stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_day'],   nowInfluxDb + '-1d'),  "var" : "relative_day"});
       stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_week'],  nowInfluxDb + '-7d'),  "var" : "relative_week"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_month'], nowInfluxDb + '-30d'), "var" : "relative_month"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_month'], relativeMonth),        "var" : "relative_month"});
 
       return stats;
 
