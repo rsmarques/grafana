@@ -9,21 +9,17 @@
 <table class="scorecard" align="left">
   <tr>
     <td>Objective: </td>
-    <!-- <td style="font-weight: bold" id="$panel.id$.objective"/> -->
-   
     <td>Realized: </td>
-    <!-- <td style="font-weight: bold" id="$panel.id$.realized"/> -->
-   
     <td >On Track: </td>
   </tr>
+  <tr>
     <td style="font-weight: bold" id="$panel.id$.objective"/>
     <td style="font-weight: bold" id="$panel.id$.realized"/>
     <td align="right">
-      <div id="$panel.id$.onTrack" class="circle" />
+      <div id="$panel.id$.on_track" class="circle" />
     </td>
-  <tr>
-
   </tr>
+
 </table>
 
 <script>
@@ -35,16 +31,7 @@ var realized  = $var-realized$;
 document.getElementById("$panel.id$.objective").innerHTML = objective;
 document.getElementById("$panel.id$.realized").innerHTML  = realized;
 
-
-if (eval(realized + logic + objective)){
-  document.getElementById("$panel.id$.onTrack").style.backgroundColor = "green";
-}
-else if (eval(realized + logic + objective * 0.8)){
-  document.getElementById("$panel.id$.onTrack").style.backgroundColor = "yellow";
-}
-else{
-  document.getElementById("$panel.id$.onTrack").style.backgroundColor = "red";
-}
+setScorecardColor("$panel.id$.on_track",  realized,  logic, objective);
 
 </script>
 

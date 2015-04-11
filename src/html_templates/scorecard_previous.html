@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+</head>
+<body>
+
+<table class="scorecard" align="left">
+  <tr>
+    <td>Objective </td>
+    <td>Realized </td>
+    <td>On Track </td>
+  </tr>
+  <tr>
+    <td rowspan="2" style="font-weight: bold" id="$panel.id$.objective"/>
+    <td style="font-weight: bold" id="$panel.id$.realized_current"/>
+    <td align="right">
+      <div id="$panel.id$.on_track_current" class="circle" />
+    </td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold" id="$panel.id$.realized_previous"/>
+    <td align="right">
+      <div id="$panel.id$.on_track_previous" class="circle" />
+    </td>
+  </tr>
+</table>
+
+<script>
+
+var logic             = $var-compare$;
+var objective         = $var-objective$;
+var realizedCurrent   = $var-realizedCurrent$;
+var realizedPrevious  = $var-realizedPrevious$;
+
+document.getElementById("$panel.id$.objective").innerHTML          = objective;
+document.getElementById("$panel.id$.realized_current").innerHTML   = realizedCurrent  + addTimeSpan('current');
+document.getElementById("$panel.id$.realized_previous").innerHTML  = realizedPrevious + addTimeSpan('previous');
+
+setScorecardColor("$panel.id$.on_track_current",  realizedCurrent,  logic, objective);
+setScorecardColor("$panel.id$.on_track_previous", realizedPrevious, logic, objective);
+
+</script>
+
+</body>
+</html>

@@ -94,6 +94,20 @@ function groupByKey(array, key){
 
 }
 
+function createQuery(table, select, where, groupBy){
+
+  var query = "select ";
+
+  query += select ? select + " " : "* ";
+  query += " from " + table + " ";
+
+  if (where)   query += " where " + where;
+  if (groupBy) query += " group by " + groupBy;
+
+  return query;
+
+}
+
 //groups data by an array of timestamps
 function groupByTime(dates, data, key){
 
@@ -171,6 +185,22 @@ function addTimeSpan(str){
   return '<br><span class="timespan">' + str + '</span>';
 }
 
+function updateProgressBar(id, value){
+  document.getElementById(id).value = value;
+}
+
+function setScorecardColor(docId, realized, logic, objective){
+
+  if (eval(realized + logic + objective)){
+    document.getElementById(docId).style.backgroundColor = "green";
+  }
+  else if (eval(realized + logic + objective * 0.8)){
+    document.getElementById(docId).style.backgroundColor = "yellow";
+  }
+  else{
+    document.getElementById(docId).style.backgroundColor = "red";
+  }
+}
 
 //Simple funtion utils
 function performance(a, b){
