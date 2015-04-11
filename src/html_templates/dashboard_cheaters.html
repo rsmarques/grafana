@@ -16,20 +16,29 @@ function getUniqueArtistInvestors(Settings){
 
   var gameDatasource       = $var-gameDatasource$;
   var analyticsDatasource  = $var-analyticsDatasource$;
+  
+  var investTable          = "nysa.api.events.invest.count";
+  var user_key             = "user_id";
+  var song_key             = "song_id";
+  var artist_key           = "artist_id";
+
+  var investmentArtistsCountQuery   = createQuery(investTable, "count(distinct(artist_id))", "", user_key);
+  var investmentSongsCountQuery     = createQuery(investTable, "count(distinct(song_id))",   "", user_key);
+  var investmentUsersCountQuery     = createQuery(investTable, "count(user_id)",             "", user_key);
 
   var investmentArtistsCountQuery   = "select count(distinct(artist_id)) from nysa.api.events.invest.count group by user_id";
   var investmentSongsCountQuery     = "select count(distinct(song_id)) from nysa.api.events.invest.count group by user_id";
   var investmentUsersCountQuery     = "select count(user_id) from nysa.api.events.invest.count group by user_id";
 
   var investArtists = getInfluxDbData(investmentArtistsCountQuery, gameDatasource, Settings);  
+  // updateProgressBar("$panel.id$.progress", 25);
   var investSongs   = getInfluxDbData(investmentSongsCountQuery, gameDatasource, Settings);  
+  // updateProgressBar("$panel.id$.progress", 50);
   var investUsers   = getInfluxDbData(investmentUsersCountQuery, gameDatasource, Settings);  
-  // console.log(investUsers);
+  // updateProgressBar("$panel.id$.progress", 75);
   investArtists = groupByKey(investArtists, 'user_id');
   investSongs   = groupByKey(investSongs, 'user_id');
   investUsers   = groupByKey(investUsers, 'user_id');
-
-  document.getElementById("$panel.id$.progress").value = 50;
 
   var users = Object.keys(investUsers);
   var uniqueInvestors = [];
@@ -48,20 +57,43 @@ function getUniqueArtistInvestors(Settings){
     }
   }
   
-  var inClause = '(' + uniqueInvestors.join() + ')';
-  var uniqueInvestsQuery = "select count(distinct(user_id)) from nysa.api.events.invest.count where user_id in " + inClause + " group by artist_id";
-  var sumInvestsQuery = "select sum(value) from nysa.api.events.invest.count where user_id in " + inClause + " group by artist_id";
+  var song_key            = "song_id";
+  var artist_key          = "artist_id";
+  var inClause            = '(' + uniqueInvestors.join() + ')';
 
-  var uniqueInvests = getInfluxDbData(uniqueInvestsQuery, gameDatasource, Settings);
-  var sumInvests    = getInfluxDbData(sumInvestsQuery, gameDatasource, Settings);
+  var artistUniqueInvestsQuery  = createQuery(investTable, "count(distinct(user_id))", "user_id in " + inClause, artist_key);
+  var songUniqueInvestsQuery    = createQuery(investTable, "count(distinct(user_id))", "user_id in " + inClause, song_key);
+  var artistSumInvestsQuery     = createQuery(investTable, "sum(value)",               "user_id in " + inClause, artist_key);
+  var songSumInvestsQuery       = createQuery(investTable, "sum(value)",               "user_id in " + inClause, song_key);
 
-  uniqueInvests   = uniqueInvests.sort(function (a, b){ return b.count - a.count;});
-  sumInvests      = sumInvests.sort(function (a, b){ return b.sum - a.sum;});
+  var artistUniqueInvests       = getInfluxDbData(artistUniqueInvestsQuery, gameDatasource, Settings);
+  var artistSumInvests          = getInfluxDbData(artistSumInvestsQuery,    gameDatasource, Settings);
+  var songUniqueInvests         = getInfluxDbData(songUniqueInvestsQuery,   gameDatasource, Settings);
+  var songSumInvests            = getInfluxDbData(songSumInvestsQuery,      gameDatasource, Settings);  
 
-  console.log(uniqueInvests);
-  console.log(sumInvests);
+  artistUniqueInvests           = artistUniqueInvests.sort(function (a, b){ return b.count - a.count;});
+  artistSumInvests              = artistSumInvests.sort(function (a, b){ return b.sum - a.sum;});
+  songUniqueInvests             = songUniqueInvests.sort(function (a, b){ return b.count - a.count;});
+  songSumInvests                = songSumInvests.sort(function (a, b){ return b.sum - a.sum;});
 
-  document.getElementById("$panel.id$.progress").value = 100;
+  console.log("artist count");
+  for (var i = 0; i < 20; i++) {
+    console.log(artistUniqueInvests[i]);
+  }
+  console.log("artist sum");
+  for (var i = 0; i < 20; i++) {
+    console.log(artistSumInvests[i]);
+  }
+  console.log("song count");
+  for (var i = 0; i < 20; i++) {
+    console.log(songUniqueInvests[i]);
+  }
+  console.log("song sum");
+  for (var i = 0; i < 20; i++) {
+    console.log(songSumInvests[i]);
+  }
+
+  updateProgressBar("$panel.id$.progress", 100);
 
 }
 
