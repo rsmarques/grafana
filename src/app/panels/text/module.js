@@ -64,6 +64,7 @@ function (angular, app, _, require, PanelMeta) {
                      'dashboard_artists',
                      'dashboard_au',
                      'dashboard_cheaters',
+                     'dashboard_kpis',
                      'dashboard_wmau',
                      'dashboard_performance',
                      'dashboard_performance_wm',

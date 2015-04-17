@@ -101,7 +101,13 @@ function createQuery(table, select, where, groupBy){
   query += select ? select + " " : "* ";
   query += " from " + table + " ";
 
-  if (where)   query += " where " + where;
+  // If query has conditions a where clause is built
+  if (where.length > 0) {
+    query += " where ";
+    for (var i = 0; i < where.length; i++) {
+      query += i == 0 ? where[i] + " " : "and " + where[i] + " ";
+    }
+  }
   if (groupBy) query += " group by " + groupBy;
 
   return query;
@@ -118,11 +124,18 @@ function groupByTime(dates, data, key){
     var d = [];
     startDate = dates[i].date;
     endDate   = i == dates.length - 1 ? new Date() : dates[i+1].date;
-    while (dataIndex < data.length && new Date(data[dataIndex].time) >= startDate && new Date(data[dataIndex].time) < endDate){
+
+    while (dataIndex < data.length && new Date(data[dataIndex].time) < endDate){
+      if (new Date(data[dataIndex].time) < startDate) {
+        dataIndex++;
+        continue;
+      }
+
       var value = data[dataIndex][key];
       if (d.indexOf(value) == -1) d.push(value);
       dataIndex++;
     }
+
     obj[dates[i].str] = d;
   }
 
@@ -153,13 +166,13 @@ function formatDate(date) {
 function datesBetween(timespan, startDate, endDate){
 
   var dates   = [];
-  var now     = new Date();
+  var end     = typeof endDate !== "undefined" ? new Date(endDate) : new Date();
   var current = new Date(startDate);
 
   if (timespan == 'm') current.setDate(1);
   else if (timespan == 'w') current = getMonday(startDate);
 
-  while (current < now) {
+  while (current < end) {
 
     dates.push({'date' : new Date(current), 'str' : formatDate(current)}); 
     switch(timespan) {
@@ -178,6 +191,23 @@ function datesBetween(timespan, startDate, endDate){
   }
 
   return dates;
+}
+
+function dateDiffInDays(a, b) {
+  var _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+  // Discard the time and time-zone information.
+  var utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  var utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+  return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+}
+
+function getMonthNames(){
+  var monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"];
+
+  return monthNames;
 }
 
 //Style functions

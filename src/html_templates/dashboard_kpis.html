@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+<script type"text/javascript" src="html_templates/kpis_data.js"></script>
+</head>
+<body>
+
+<div align="center">
+  <table id="$panel.id$.kpi_table" class="stats side">
+    <tr id="$panel.id$.kpi_table.month_row">
+      <th/>
+    </tr>
+    <tr id="$panel.id$.kpi_table.param_row">
+      <th/>
+    </tr>
+  </table>
+
+  <table id="$panel.id$.week_table" class="stats side" >
+    <tr id="$panel.id$.week_table.title_row"/>
+    <tr id="$panel.id$.week_table.week_row"/>
+  </table>
+</div>
+
+<script>
+
+function getKPIValue(kpi, realizedData) {
+
+  var ret = "--";
+  if (kpi.type == 'artist' || kpi.type == 'user') {
+    var data        = kpi.type == 'artist' ? realizedData.artistData     : realizedData.userData;
+    var base        = kpi.type == 'artist' ? realizedData.artistBase     : realizedData.userBase;
+    var monthlyNew  = kpi.type == 'artist' ? realizedData.monthlyArtists : realizedData.monthlyUsers;
+    if (kpi.title === "MNA" || kpi.title === "MNU") {
+      var origin = kpi.origin;
+      switch(origin) {
+        case "ALL":
+          ret = monthlyNew;
+          break;
+        case "INT":
+          ret = monthlyNew - data["PT"].count - data["GB"].count;
+          break;
+        default:
+          ret = data[origin].count;
+      }
+    }
+    else {
+      ret = base;
+    }
+  }
+  else {
+    if (kpi.title === "AU") ret = realizedData.activeUsers;
+    else ret = performance(realizedData.activeUsers, realizedData.userBase);
+  }
+
+  return ret;
+}
+
+function getRealizedData(Settings, startDate, endDate) {
+
+  var gameDatasource       = "influxdb_game";
+  var analyticsDatasource  = "influxdb_analytics";
+
+  var artistTable          = "nysa.api.artists.valid.count";
+  var userTable            = "nysa.api.users.registered.count";
+  var activeUserTable      = "nysa.api.users.active.count.1d.distinct";
+
+  var timeClause = [];
+  var baseClause = [];
+  var betaClause = "time > '" + '2015-01-16' + "'";
+  timeClause.push("time > '" + startDate + "'");
+  if (typeof endDate !== "undefined") {
+    timeClause.push("time < '" + endDate + "'");
+    baseClause.push("time < '" + endDate + "'");
+  }
+
+  var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");
+  var artistBaseQuery     = createQuery(artistTable,     "count(distinct(artist_id))", baseClause, "");
+  var userQuery           = createQuery(userTable,       "count(distinct(user_id))",   timeClause, "origin");
+  var userBaseQuery       = createQuery(activeUserTable, "count(distinct(distinct))",  baseClause.concat([betaClause]), "");
+  var activeUserQuery     = createQuery(activeUserTable, "count(distinct)",            timeClause, "distinct");
+  var userSignupsQuery    = createQuery(userTable,       "distinct(user_id)",          timeClause, "");
+
+  var artistData          = getInfluxDbData(artistQuery, analyticsDatasource, Settings);
+  var userData            = getInfluxDbData(userQuery,   analyticsDatasource, Settings);
+  var monthlyArtists      = artistData.reduce(function (a,b) { return a + b.count; }, 0);
+  var monthlyUsers        = userData.reduce(function   (a,b) { return a + b.count; }, 0);
+  artistData              = groupByKey(artistData, "origin");
+  userData                = groupByKey(userData,   "origin");
+
+  var artistBase          = getInfluxDbData(artistBaseQuery, analyticsDatasource, Settings)[0].count;
+  var userBase            = getInfluxDbData(userBaseQuery,   gameDatasource,      Settings)[0].count;
+
+  var userSignups         = groupByKey(getInfluxDbData(userSignupsQuery, analyticsDatasource, Settings), "distinct");
+  var activeUserData      = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
+  var activeUsers         = getMonthlyActiveUsers(activeUserData, userSignups);
+
+  var ret = {
+    "activeUsers"     : activeUsers,
+    "activeUserData"  : activeUserData,
+    "userSignups"     : userSignups,
+    "userBase"        : userBase,
+    "userData"        : userData,
+    "artistBase"      : artistBase,
+    "artistData"      : artistData,
+    "monthlyUsers"    : monthlyUsers,
+    "monthlyArtists"  : monthlyArtists
+  };
+
+  return ret;
+}
+
+function KPIDiff(realizedData, objectives, kpis, date) {
+
+  var diff = {};
+
+  for (var i = 0; i < kpis.length; i++) {
+    var kpi             = kpis[i];
+    var realized        = getKPIValue(kpi, realizedData);
+    diff[kpi.objective] = objectives[kpi.objective][date] - realized;
+  }
+
+  return diff;
+}
+/* function that calculates number of active users based on 
+ * influxdb continuous active users table and on the last
+ * signup user_id 
+ */
+function getMonthlyActiveUsers(activeUserData, userSignups) {
+
+  var count = 0;
+
+  for (var i = 0; i < activeUserData.length; i++) {
+    var userId = activeUserData[i].distinct;
+    // if the user came back two days to the platform or is an old register
+    if (activeUserData[i].count > 1 || userSignups[userId] == undefined) count++;
+  }
+
+  return count;
+}
+
+require(["../config.js"], function(Settings){
+
+  var artistTable          = "nysa.api.artists.valid.count";
+  var userTable            = "nysa.api.users.registered.count";
+  var activeUserTable      = "nysa.api.users.active.count.1d.distinct";
+
+  var monthNames = getMonthNames();
+  var kpiParams  = ["Objective", "Realized", "%"];
+
+  var kpis          = loadKPIs();
+  var objectives    = loadObjectives();
+  var realizedArray = {};
+
+  var startDate            = "2015-03-01";
+  var dates                = datesBetween("m", startDate);
+
+  var kpiTable  = document.getElementById("$panel.id$.kpi_table");
+  var monthRow  = document.getElementById("$panel.id$.kpi_table.month_row");
+  var objRow    = document.getElementById("$panel.id$.kpi_table.param_row");
+
+  var weekTable = document.getElementById("$panel.id$.week_table");
+  var titleRow  = document.getElementById("$panel.id$.week_table.title_row");
+  var weekRow   = document.getElementById("$panel.id$.week_table.week_row");
+
+  kpiTableRows  = [];
+  weekTableRows = [];
+
+  // Create the tables rows with the respective kpi's
+  for (var i = 0; i < kpis.length; i++) {
+    var kpi           = kpis[i];
+    var kpiRow        = kpiTable.insertRow(i + 2);
+    var kpiCell       = kpiRow.insertCell(0);
+    var title         = kpi.origin !== undefined ? kpi.title + " " + kpi.origin : kpi.title;
+    realizedArray[kpi.objective] = {};
+    kpiCell.innerHTML = title;
+
+    kpiTableRows.push(kpiRow);
+
+    // if (kpi.objective === 'MAU' || kpi.objective === 'AU') continue;
+    var kpiRow2       = weekTable.insertRow(i + 2);
+    weekTableRows.push(kpiRow2);
+  }
+
+  for (var i = 0; i < dates.length; i++) {
+    var date  = dates[i].str;
+
+    monthCell = monthRow.insertCell(i + 1);
+    monthCell.innerHTML = monthNames[dates[i].date.getMonth()];
+    monthCell.colSpan   = 3;
+
+    //Getting Monthly Data for KPI's
+    if (i < dates.length - 1) data = getRealizedData(Settings, dates[i].str, dates[i+1].str);
+    else data = getRealizedData(Settings, dates[i].str);
+
+    for (var j = 0; j < kpiParams.length; j++) {
+      objCell   = objRow.insertCell(i * kpiParams.length + j + 1);
+      objCell.innerHTML = kpiParams[j];
+      for (var k = 0; k < kpis.length; k++) {
+        var kpi  = kpis[k];
+        var row  = kpiTableRows[k];
+        var cell = row.insertCell(i * kpiParams.length + j + 1);
+        // Objective Cell
+        if (j === 0) {
+          var objective  = objectives[kpi.objective][date];
+          cell.innerHTML = kpi.percentage ? objective + ' %' : objective;
+        }
+        // Realized Cell
+        else if (j === 1) {
+          var realized = getKPIValue(kpi, data);
+
+          cell.innerHTML    = kpi.percentage ? realized + ' %' : realized;
+          realizedArray[kpi.objective][date] = realized;
+        }
+        // Performance cell
+        else {
+          var objective  = objectives[kpi.objective][date];
+          var realized   = realizedArray[kpi.objective][date];
+          var perf = performance(realized, objective);
+
+          if (isNaN(perf) || perf < 0) {
+            cell.innerHTML = "--";
+          }
+          else {
+            cell.innerHTML = perf + " %";
+            cell.style.backgroundColor = perf > 100 ?  "green" : perf < 80 ? "red" : "yellow";
+          }
+          if (perf == Infinity)   {
+            cell.innerHTML = "&infin;"    
+            cell.style.fontSize = "17px";
+          }
+        }
+
+      }
+    }
+  }
+
+  var now           = new Date();
+  var currentMonth  = dates[dates.length - 1].str;
+  var nextMonth     = dates[dates.length - 1].date;
+  nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
+
+  var currentWeeks  = datesBetween('w', now, nextMonth);
+  var remainingDays = dateDiffInDays(currentWeeks[0].date, nextMonth);
+
+  weekData          = getRealizedData(Settings, currentMonth, currentWeeks[0].str);
+  var kpiPerformance  = KPIDiff(weekData, objectives, kpis, currentMonth);
+
+  titleCell           = titleRow.insertCell(0);
+  titleCell.innerHTML = 'Weeks Reviewed';
+  titleCell.colSpan   = currentWeeks.length;
+
+  for (var i = 0; i < currentWeeks.length; i++) {
+    var date  = currentWeeks[i].str;
+
+    weekCell = weekRow.insertCell(i);
+    weekCell.innerHTML = date;
+
+    var diffDays = Math.min(dateDiffInDays(currentWeeks[i].date, nextMonth), 7);
+
+    for (k = 0; k < kpis.length; k++) {
+      var kpi        = kpis[k];
+      // if (kpi.objective === 'MAU' || kpi.objective === 'AU') continue;
+      var row        = weekTableRows[k];
+      var cell       = row.insertCell(i);
+      var diff       = kpiPerformance[kpi.objective];
+      cell.innerHTML = diff > 0 ? Math.round(diff / remainingDays * diffDays) : 0; 
+    }
+  }
+
+
+
+
+});
+
+</script>
+
+</body>
+</html>
