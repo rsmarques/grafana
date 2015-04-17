@@ -7,21 +7,14 @@
 </head>
 <body>
 
-<div align="center">
-  <table id="$panel.id$.kpi_table" class="stats side">
-    <tr id="$panel.id$.kpi_table.month_row">
-      <th/>
-    </tr>
-    <tr id="$panel.id$.kpi_table.param_row">
-      <th/>
-    </tr>
-  </table>
-
-  <table id="$panel.id$.week_table" class="stats side" >
-    <tr id="$panel.id$.week_table.title_row"/>
-    <tr id="$panel.id$.week_table.week_row"/>
-  </table>
-</div>
+<table id="$panel.id$.kpi_table" class="stats" align="center">
+  <tr id="$panel.id$.kpi_table.month_row">
+    <th/>
+  </tr>
+  <tr id="$panel.id$.kpi_table.param_row">
+    <th/>
+  </tr>
+</table>
 
 <script>
 
@@ -39,10 +32,12 @@ function getKPIValue(kpi, realizedData) {
           ret = monthlyNew;
           break;
         case "INT":
-          ret = monthlyNew - data["PT"].count - data["GB"].count;
+          countPT = data["PT"] ? data["PT"].count : 0;
+          countGB = data["GB"] ? data["GB"].count : 0;
+          ret = monthlyNew - countPT - countGB;
           break;
         default:
-          ret = data[origin].count;
+          ret = data[origin] ? data[origin].count : 0;
       }
     }
     else {
@@ -59,8 +54,8 @@ function getKPIValue(kpi, realizedData) {
 
 function getRealizedData(Settings, startDate, endDate) {
 
-  var gameDatasource       = "influxdb_game";
-  var analyticsDatasource  = "influxdb_analytics";
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$;
 
   var artistTable          = "nysa.api.artists.valid.count";
   var userTable            = "nysa.api.users.registered.count";
@@ -153,19 +148,21 @@ require(["../config.js"], function(Settings){
   var objectives    = loadObjectives();
   var realizedArray = {};
 
-  var startDate            = "2015-03-01";
-  var dates                = datesBetween("m", startDate);
+  var startDateStr         = $var-startDate$;
+  var endDateStr           = $var-endDate$;
+  var startDate            = new Date(startDateStr);
+  var endDate              = new Date(endDateStr);
+  var now                  = new Date();
+  endDate                  = endDate > now ? now : endDate;
+
+  var dates                = datesBetween("m", startDate, endDate);
 
   var kpiTable  = document.getElementById("$panel.id$.kpi_table");
   var monthRow  = document.getElementById("$panel.id$.kpi_table.month_row");
   var objRow    = document.getElementById("$panel.id$.kpi_table.param_row");
 
-  var weekTable = document.getElementById("$panel.id$.week_table");
-  var titleRow  = document.getElementById("$panel.id$.week_table.title_row");
-  var weekRow   = document.getElementById("$panel.id$.week_table.week_row");
-
-  kpiTableRows  = [];
-  weekTableRows = [];
+  kpiRows       = [];
+  blankRowArray = [];
 
   // Create the tables rows with the respective kpi's
   for (var i = 0; i < kpis.length; i++) {
@@ -176,11 +173,10 @@ require(["../config.js"], function(Settings){
     realizedArray[kpi.objective] = {};
     kpiCell.innerHTML = title;
 
-    kpiTableRows.push(kpiRow);
+    kpiRows.push(kpiRow);
 
-    // if (kpi.objective === 'MAU' || kpi.objective === 'AU') continue;
-    var kpiRow2       = weekTable.insertRow(i + 2);
-    weekTableRows.push(kpiRow2);
+    // MAU and AU KPIs are not accounted for remaining month weeks
+    if (kpi.objective !== 'MAU' && kpi.objective !== 'AU') blankRowArray.push(kpiRow);
   }
 
   for (var i = 0; i < dates.length; i++) {
@@ -192,14 +188,14 @@ require(["../config.js"], function(Settings){
 
     //Getting Monthly Data for KPI's
     if (i < dates.length - 1) data = getRealizedData(Settings, dates[i].str, dates[i+1].str);
-    else data = getRealizedData(Settings, dates[i].str);
+    else data = getRealizedData(Settings, dates[i].str, endDateStr);
 
     for (var j = 0; j < kpiParams.length; j++) {
       objCell   = objRow.insertCell(i * kpiParams.length + j + 1);
       objCell.innerHTML = kpiParams[j];
       for (var k = 0; k < kpis.length; k++) {
         var kpi  = kpis[k];
-        var row  = kpiTableRows[k];
+        var row  = kpiRows[k];
         var cell = row.insertCell(i * kpiParams.length + j + 1);
         // Objective Cell
         if (j === 0) {
@@ -208,9 +204,9 @@ require(["../config.js"], function(Settings){
         }
         // Realized Cell
         else if (j === 1) {
-          var realized = getKPIValue(kpi, data);
+          var realized   = getKPIValue(kpi, data);
 
-          cell.innerHTML    = kpi.percentage ? realized + ' %' : realized;
+          cell.innerHTML = kpi.percentage ? realized + ' %' : realized;
           realizedArray[kpi.objective][date] = realized;
         }
         // Performance cell
@@ -236,41 +232,53 @@ require(["../config.js"], function(Settings){
     }
   }
 
-  var now           = new Date();
-  var currentMonth  = dates[dates.length - 1].str;
-  var nextMonth     = dates[dates.length - 1].date;
+  blankRowArray = blankRowArray.concat([monthRow, objRow]);
+  insertBlankCells(blankRowArray);
+
+  // Remaining weeks of current month are calculated
+  var currentMonth    = dates[dates.length - 1].str;
+  var nextMonth       = dates[dates.length - 1].date;
   nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
 
-  var currentWeeks  = datesBetween('w', now, nextMonth);
-  var remainingDays = dateDiffInDays(currentWeeks[0].date, nextMonth);
+  var nextWeeks       = datesBetween('w', endDate, nextMonth);
+  // If first monday is in the previous month the dates are rearraged
+  if (nextWeeks[0].date.getMonth() !== endDate.getMonth()) {
+    nextWeeks[0].date.setMonth(endDate.getMonth(), 1);
+    nextWeeks[0].str = formatDate(nextWeeks[0].date);
+  }
 
-  weekData          = getRealizedData(Settings, currentMonth, currentWeeks[0].str);
+  var remainingDays   = dateDiffInDays(nextWeeks[0].date, nextMonth);
+
+  // Data of current monday is calculated
+  weekData            = getRealizedData(Settings, currentMonth, nextWeeks[0].str);
   var kpiPerformance  = KPIDiff(weekData, objectives, kpis, currentMonth);
 
-  titleCell           = titleRow.insertCell(0);
+  titleCell           = monthRow.insertCell(-1);
   titleCell.innerHTML = 'Weeks Reviewed';
-  titleCell.colSpan   = currentWeeks.length;
+  titleCell.colSpan   = nextWeeks.length;
 
-  for (var i = 0; i < currentWeeks.length; i++) {
-    var date  = currentWeeks[i].str;
+  // Values to accomplish KPI's through the remaining weeks now presented
+  for (var i = 0; i < nextWeeks.length; i++) {
+    var date     = nextWeeks[i].date;
 
-    weekCell = weekRow.insertCell(i);
-    weekCell.innerHTML = date;
+    // number of days of week is calculated 
+    var nextDate = i < nextWeeks.length - 1 ? nextWeeks[i+1].date : nextMonth;
+    var diffDays = dateDiffInDays(date, nextDate);
 
-    var diffDays = Math.min(dateDiffInDays(currentWeeks[i].date, nextMonth), 7);
+    weekCell   = objRow.insertCell(-1);
+    var monday = date.getDate();
+    weekCell.innerHTML = monday.toString() + '-' + (monday + diffDays - 1).toString() + ' ' + monthNames[date.getMonth()].substring(0, 3);
 
     for (k = 0; k < kpis.length; k++) {
       var kpi        = kpis[k];
-      // if (kpi.objective === 'MAU' || kpi.objective === 'AU') continue;
-      var row        = weekTableRows[k];
-      var cell       = row.insertCell(i);
+      if (kpi.objective === 'MAU' || kpi.objective === 'AU') continue;
+
+      var row        = kpiRows[k];
+      var cell       = row.insertCell(-1);
       var diff       = kpiPerformance[kpi.objective];
       cell.innerHTML = diff > 0 ? Math.round(diff / remainingDays * diffDays) : 0; 
     }
   }
-
-
-
 
 });
 

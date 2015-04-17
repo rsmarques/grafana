@@ -58,21 +58,25 @@ function getInfluxDbData(query, datasource, settings){
 
 function arrangeInfluxDbData(data) {
 
-  data     = data[0];
-  points   = data['points'];
-  columns  = data['columns'];
+  data = data[0];
 
-  result = _.map(points, function(value, key){
-    var obj = {};
+  if (data && data['points'] !== undefined && data['columns'] !== undefined) {
+    points   = data['points'];
+    columns  = data['columns'];
 
-    for (var i = 0; i < value.length; i++){
-      obj[columns[i]] = value[i];
-    }
+    result = _.map(points, function(value, key){
+      var obj = {};
 
-    return obj;
-  });
+      for (var i = 0; i < value.length; i++){
+        obj[columns[i]] = value[i];
+      }
 
-  return result;
+      return obj;
+    });
+
+    return result;
+  }
+  else return [];
 }
 
 function groupByKey(array, key){
@@ -229,6 +233,17 @@ function setScorecardColor(docId, realized, logic, objective){
   }
   else{
     document.getElementById(docId).style.backgroundColor = "red";
+  }
+}
+
+function insertBlankCells(rowArray){
+
+  for (var i = 0; i < rowArray.length; i++) {
+    var row       = rowArray[i];
+    var blankCell = row.insertCell(-1);
+    
+    blankCell.style.borderBottom = "hidden";
+    blankCell.style.borderTop    = "hidden";
   }
 }
 
