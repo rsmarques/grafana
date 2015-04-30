@@ -71,13 +71,14 @@ require(["../config.js"], function(Settings){
   var dateStr              = $var-dateStr$;
   var topNumber            = $var-topNumber$;
 
-  var date                 = new Date(dateStr);
+  var currentDate          = new Date(dateStr);
   var now                  = new Date();
-  date                     = date > now ? now : date;
-  var weekDate             = getMonday(date);
-  var monthDate            = getFirstDayOfMonth(date);
+  currentDate              = currentDate > now ? now : currentDate;
+  var weekDate             = getMonday(currentDate);
+  var monthDate            = getFirstDayOfMonth(currentDate);
+  currentDate.setDate(currentDate.getDate()+1);
 
-  var currentData          = getCountryDistribution(Settings, growthType, formatDate(date));
+  var currentData          = getCountryDistribution(Settings, growthType, formatDate(currentDate));
   var weekData             = getCountryDistribution(Settings, growthType, formatDate(weekDate));
   var monthData            = getCountryDistribution(Settings, growthType, formatDate(monthDate));
 
