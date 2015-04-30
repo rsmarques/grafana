@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+<script type"text/javascript" src="html_templates/kpis_data.js"></script>
+</head>
+<body>
+
+<p/>
+<table id="$panel.id$.country_table" class="stats" align="center">
+  <tr id="$panel.id$.country_table.desc_row">
+    <td>Country</td>
+    <td>Total</td>
+    <td>% (Total)</td>
+    <td>New (Week)</td>
+    <td>New (Month)</td>
+  </tr>
+  <tr id="$panel.id$.country_table.total_row">
+    <td>Total</td>
+    <td id="$panel.id$.country_table.total_cell" colspan="4"/>
+  </tr>
+</table>
+
+<p id="$panel.id$.done"/>
+
+<script>
+
+function getCountryDistribution(Settings, type, date) {
+
+  var artistTable          = "nysa.api.artists.valid.count";
+  var userTable            = "nysa.api.users.registered.count";
+  var activeUserTable      = "nysa.api.users.active.count.1d.distinct";
+
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$;
+
+  var baseClause = [];
+  if (typeof date !== "undefined") {
+    baseClause.push("time < '" + date + "'");
+  }
+
+  var table               = type == "users" ? userTable : artistTable;
+  var key                 = type == "users" ? "user_id" : "artist_id";
+
+  var query               = createQuery(table, "count(distinct(" + key + "))", baseClause, "origin");
+  var data                = getInfluxDbData(query, analyticsDatasource, Settings);
+
+  // Grouping nulls and "--""
+  var nullCount   = 0;
+  for (var i = 0; i < data.length; i++) {
+
+    if (data[i].origin == '--' || data[i].origin === null) {
+      nullCount += data[i].count;
+      data.splice(i, 1);
+      i--;
+    }
+  }
+  nullData = {"origin" : "NULL", "count" : nullCount};
+  data.push(nullData);
+
+  data.sort(function (a, b){ return b.count   - a.count;});
+  var total = data.reduce(function (a,b){ return a + b.count; }, 0);
+
+  return {"data" : data, "total" : total};
+}
+
+require(["../config.js"], function(Settings){
+
+  var growthType           = $var-growthType$;
+  var dateStr              = $var-dateStr$;
+  var topNumber            = $var-topNumber$;
+
+  var date                 = new Date(dateStr);
+  var now                  = new Date();
+  date                     = date > now ? now : date;
+  var weekDate             = getMonday(date);
+  var monthDate            = getFirstDayOfMonth(date);
+
+  var currentData          = getCountryDistribution(Settings, growthType, formatDate(date));
+  var weekData             = getCountryDistribution(Settings, growthType, formatDate(weekDate));
+  var monthData            = getCountryDistribution(Settings, growthType, formatDate(monthDate));
+
+  // grouping weekly and monthly data by origin to diff from current data
+  weekData.data            = groupByKey(weekData.data,   "origin");
+  monthData.data           = groupByKey(monthData.data,  "origin");
+
+  var totalCell            = document.getElementById("$panel.id$.country_table.total_cell");
+  totalCell.innerHTML      = currentData.total;
+
+  var table                = document.getElementById("$panel.id$.country_table");
+  var topCount             = 0;
+  var weeklyCount          = 0;
+  var monthlyCount         = 0;
+
+  for (var i = 0; i < topNumber + 1; i ++) {
+
+    var row        = table.insertRow(i+1);
+    if (i <= topNumber) {
+
+      var countryCell           = row.insertCell(-1);
+      var totalCell             = row.insertCell(-1);
+      var percentageCell        = row.insertCell(-1);
+      var weeklyCell            = row.insertCell(-1);
+      var monthlyCell           = row.insertCell(-1);
+
+
+      if (i < topNumber) {
+        var country               = currentData.data[i].origin;  
+        var count                 = currentData.data[i].count    
+        topCount                 += count;        
+        weeklyCount              += count - weekData.data[country].count;
+        monthlyCount             += count - monthData.data[country].count;
+
+        countryCell.innerHTML     = getCountryFromCode(country);
+        totalCell.innerHTML       = count;
+        percentageCell.innerHTML  = performance(count, currentData.total);
+        weeklyCell.innerHTML      = count - weekData.data[country].count;
+        monthlyCell.innerHTML     = count - monthData.data[country].count;
+      }
+      // rest of world data
+      else {
+        countryCell.innerHTML     = "Rest of World"
+        totalCell.innerHTML       = currentData.total - topCount;
+        percentageCell.innerHTML  = performance(currentData.total - topCount, currentData.total);
+        weeklyCell.innerHTML      = currentData.total - weekData.total  - weeklyCount;
+        monthlyCell.innerHTML     = currentData.total - monthData.total - monthlyCount;
+      }
+    }
+  }
+
+});
+
+</script>
+
+</body>
+</html>
