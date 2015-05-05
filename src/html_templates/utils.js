@@ -84,14 +84,13 @@ function groupByKey(array, key){
   // [] or {} ??? To think
   var obj = {};
 
-  for (var i = 0; i < array.length; i++){
+  if (array !== undefined) {
+    for (var i = 0; i < array.length; i++){
 
-    var point     = array[i];
-    var value     = point[key];
-    // if (!obj[keyValue]){
-    //   obj[keyValue] = [];
-    // }
-    obj[value]    = point;
+      var point     = array[i];
+      var value     = point[key];
+      obj[value]    = point;
+    }    
   }
 
   return obj;
@@ -252,6 +251,21 @@ function insertBlankCells(rowArray){
     blankCell.style.borderBottom = "hidden";
     blankCell.style.borderTop    = "hidden";
   }
+}
+
+function fillPerformanceCell(cell, performance) {
+
+  if (isNaN(performance) || performance < 0) {
+    cell.innerHTML = "--";
+  }
+  else {
+    cell.innerHTML = performance + " %";
+    cell.style.backgroundColor = performance > 100 ?  "green" : performance < 80 ? "red" : "yellow";
+  }
+  if (performance == Infinity)   {
+    cell.innerHTML = "&infin;"    
+    cell.style.fontSize = "17px";
+  }  
 }
 
 //Simple funtion utils

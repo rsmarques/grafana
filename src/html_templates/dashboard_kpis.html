@@ -79,8 +79,8 @@ function getRealizedData(Settings, startDate, endDate) {
 
   var artistData          = getInfluxDbData(artistQuery, analyticsDatasource, Settings);
   var userData            = getInfluxDbData(userQuery,   analyticsDatasource, Settings);
-  var monthlyArtists      = artistData.reduce(function (a,b) { return a + b.count; }, 0);
-  var monthlyUsers        = userData.reduce(function   (a,b) { return a + b.count; }, 0);
+  var monthlyArtists      = artistData !== undefined ? artistData.reduce(function (a,b) { return a + b.count; }, 0) : 0;
+  var monthlyUsers        = userData   !== undefined ? userData.reduce(function   (a,b) { return a + b.count; }, 0) : 0;
   artistData              = groupByKey(artistData, "origin");
   userData                = groupByKey(userData,   "origin");
 
@@ -118,6 +118,22 @@ function KPIDiff(realizedData, objectives, kpis, date) {
 
   return diff;
 }
+
+function insertPerformanceCells(row, objective, realized, percentage) {
+
+  var objectiveCell         = row.insertCell(-1);
+  var realizedCell          = row.insertCell(-1);
+  var performanceCell       = row.insertCell(-1);
+
+  var perf                  = performance(realized, objective);
+
+  objectiveCell.innerHTML   = percentage ? objective + ' %' : objective;
+  realizedCell.innerHTML    = percentage ? realized  + ' %' : realized;
+  performanceCell.innerHTML = perf + ' %';
+
+  fillPerformanceCell(performanceCell, perf);
+}
+
 /* function that calculates number of active users based on 
  * influxdb continuous active users table and on the last
  * signup user_id 
@@ -126,10 +142,12 @@ function getMonthlyActiveUsers(activeUserData, userSignups) {
 
   var count = 0;
 
-  for (var i = 0; i < activeUserData.length; i++) {
-    var userId = activeUserData[i].distinct;
-    // if the user came back two days to the platform or is an old register
-    if (activeUserData[i].count > 1 || userSignups[userId] == undefined) count++;
+  if (activeUserData !== undefined) {
+    for (var i = 0; i < activeUserData.length; i++) {
+      var userId = activeUserData[i].distinct;
+      // if the user came back two days to the platform or is an old register
+      if (activeUserData[i].count > 1 || userSignups[userId] == undefined) count++;
+    }
   }
 
   return count;
@@ -137,16 +155,12 @@ function getMonthlyActiveUsers(activeUserData, userSignups) {
 
 require(["../config.js"], function(Settings){
 
-  var artistTable          = "nysa.api.artists.valid.count";
-  var userTable            = "nysa.api.users.registered.count";
-  var activeUserTable      = "nysa.api.users.active.count.1d.distinct";
+  var monthNames     = getMonthNames();
+  var kpiParams      = ["Objective", "Realized", "%"];
+  var kpiParamsShort = ["Obj.", "Real.", "%"];
 
-  var monthNames = getMonthNames();
-  var kpiParams  = ["Objective", "Realized", "%"];
-
-  var kpis          = loadKPIs();
-  var objectives    = loadObjectives();
-  var realizedArray = {};
+  var kpis           = loadKPIs();
+  var objectives     = loadObjectives();
 
   var startDateStr         = $var-startDate$;
   var endDateStr           = $var-endDate$;
@@ -170,7 +184,6 @@ require(["../config.js"], function(Settings){
     var kpiRow        = kpiTable.insertRow(i + 2);
     var kpiCell       = kpiRow.insertCell(0);
     var title         = kpi.origin !== undefined ? kpi.title + " " + kpi.origin : kpi.title;
-    realizedArray[kpi.objective] = {};
     kpiCell.innerHTML = title;
 
     kpiRows.push(kpiRow);
@@ -193,42 +206,16 @@ require(["../config.js"], function(Settings){
     for (var j = 0; j < kpiParams.length; j++) {
       objCell   = objRow.insertCell(i * kpiParams.length + j + 1);
       objCell.innerHTML = kpiParams[j];
-      for (var k = 0; k < kpis.length; k++) {
-        var kpi  = kpis[k];
-        var row  = kpiRows[k];
-        var cell = row.insertCell(i * kpiParams.length + j + 1);
-        // Objective Cell
-        if (j === 0) {
-          var objective  = objectives[kpi.objective][date];
-          cell.innerHTML = kpi.percentage ? objective + ' %' : objective;
-        }
-        // Realized Cell
-        else if (j === 1) {
-          var realized   = getKPIValue(kpi, data);
+    }
 
-          cell.innerHTML = kpi.percentage ? realized + ' %' : realized;
-          realizedArray[kpi.objective][date] = realized;
-        }
-        // Performance cell
-        else {
-          var objective  = objectives[kpi.objective][date];
-          var realized   = realizedArray[kpi.objective][date];
-          var perf = performance(realized, objective);
+    for (var k = 0; k < kpis.length; k++) {
+      var kpi  = kpis[k];
+      var row  = kpiRows[k];
 
-          if (isNaN(perf) || perf < 0) {
-            cell.innerHTML = "--";
-          }
-          else {
-            cell.innerHTML = perf + " %";
-            cell.style.backgroundColor = perf > 100 ?  "green" : perf < 80 ? "red" : "yellow";
-          }
-          if (perf == Infinity)   {
-            cell.innerHTML = "&infin;"    
-            cell.style.fontSize = "17px";
-          }
-        }
+      var objective  = objectives[kpi.objective][date];
+      var realized   = getKPIValue(kpi, data);
 
-      }
+      insertPerformanceCells(row, objective, realized, kpi.percentage);
     }
   }
 
@@ -237,25 +224,19 @@ require(["../config.js"], function(Settings){
 
   // Remaining weeks of current month are calculated
   var currentMonth    = dates[dates.length - 1].str;
-  var nextMonth       = dates[dates.length - 1].date;
+  var nextMonth       = new Date(dates[dates.length - 1].date);
   nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
 
-  var nextWeeks       = datesBetween('w', endDate, nextMonth);
+  var nextWeeks       = datesBetween('w', currentMonth, nextMonth);
   // If first monday is in the previous month the dates are rearraged
   if (nextWeeks[0].date.getMonth() !== endDate.getMonth()) {
     nextWeeks[0].date.setMonth(endDate.getMonth(), 1);
     nextWeeks[0].str = formatDate(nextWeeks[0].date);
   }
 
-  var remainingDays   = dateDiffInDays(nextWeeks[0].date, nextMonth);
-
   // Data of current monday is calculated
-  weekData            = getRealizedData(Settings, currentMonth, nextWeeks[0].str);
-  var kpiPerformance  = KPIDiff(weekData, objectives, kpis, currentMonth);
-
-  titleCell           = monthRow.insertCell(-1);
-  titleCell.innerHTML = 'Weeks Reviewed';
-  titleCell.colSpan   = nextWeeks.length;
+  initialData         = getRealizedData(Settings, currentMonth, nextWeeks[0].str);
+  var kpiPerformance  = KPIDiff(initialData, objectives, kpis, currentMonth);
 
   // Values to accomplish KPI's through the remaining weeks now presented
   for (var i = 0; i < nextWeeks.length; i++) {
@@ -265,18 +246,53 @@ require(["../config.js"], function(Settings){
     var nextDate = i < nextWeeks.length - 1 ? nextWeeks[i+1].date : nextMonth;
     var diffDays = dateDiffInDays(date, nextDate);
 
-    weekCell   = objRow.insertCell(-1);
-    var monday = date.getDate();
+    weekCell     = monthRow.insertCell(-1);
+    var monday   = date.getDate();
+    weekCell.colSpan   = 3;
     weekCell.innerHTML = monday.toString() + '-' + (monday + diffDays - 1).toString() + ' ' + monthNames[date.getMonth()].substring(0, 3);
+
+    var presentData    = nextWeeks[i].date <= endDate;
+
+    if (presentData) {
+      for (var j = 0; j < kpiParams.length; j++) {
+        objCell   = objRow.insertCell(-1);
+        objCell.innerHTML = kpiParamsShort[j];
+      }
+      var remainingDays   = dateDiffInDays(nextWeeks[i].date, nextMonth);
+      nextDate       = i < nextWeeks.length - 1 ? nextWeeks[i+1].str : endDateStr;
+
+      currentData    = getRealizedData(Settings, nextWeeks[i].str, nextDate);
+      previousData   = getRealizedData(Settings, currentMonth, nextWeeks[i].str);
+
+      kpiPerformance = KPIDiff(previousData, objectives, kpis, currentMonth);
+    }
+    else {
+      titleCell           = objRow.insertCell(-1);
+      titleCell.innerHTML = kpiParamsShort[0];
+      titleCell.colSpan   = 3;
+    }
 
     for (k = 0; k < kpis.length; k++) {
       var kpi        = kpis[k];
       if (kpi.objective === 'MAU' || kpi.objective === 'AU') continue;
 
-      var row        = kpiRows[k];
-      var cell       = row.insertCell(-1);
-      var diff       = kpiPerformance[kpi.objective];
-      cell.innerHTML = diff > 0 ? Math.round(diff / remainingDays * diffDays) : 0; 
+      var row          = kpiRows[k];
+      var diff         = kpiPerformance[kpi.objective];
+      diff             = diff > 0 ? Math.round(diff / remainingDays * diffDays) : 0;
+
+      if (presentData) {
+        var realized        = getKPIValue(kpi, currentData);
+        var objective       = diff;
+        if (kpi.objective === 'ARTISTCOUNT') realized -= previousData.artistBase;
+        if (kpi.objective === 'USERCOUNT')   realized -= previousData.userBase;
+
+        insertPerformanceCells(row, objective, realized, kpi.percentage);
+      }
+      else {      
+        var cell       = row.insertCell(-1);
+        cell.colSpan   = 3;
+        cell.innerHTML = diff; 
+      }
     }
   }
 
