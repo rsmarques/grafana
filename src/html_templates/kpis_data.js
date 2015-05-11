@@ -44,14 +44,14 @@ function loadObjectives() {
 function loadKPIs() {
 
   var kpis = [
-    {"title" : "Artist Base", "type" : "artist", "objective" : "ARTISTCOUNT"},
+    // {"title" : "Artist Base", "type" : "artist", "objective" : "ARTISTCOUNT"},
 
     {"title" : "MNA", "type" : "artist",  "origin" : "PT",  "objective" : "MNAPT"},
     {"title" : "MNA", "type" : "artist",  "origin" : "GB",  "objective" : "MNAGB"},
     {"title" : "MNA", "type" : "artist",  "origin" : "INT", "objective" : "MNAINT"},
     {"title" : "MNA", "type" : "artist",  "origin" : "ALL", "objective" : "MNAALL"},
 
-    {"title" : "User Base", "type" : "user", "objective" : "USERCOUNT"},
+    // {"title" : "User Base", "type" : "user", "objective" : "USERCOUNT"},
 
     {"title" : "MNU", "type" : "user",  "origin" : "PT",  "objective" : "MNUPT"},
     {"title" : "MNU", "type" : "user",  "origin" : "GB",  "objective" : "MNUGB"},
