@@ -97,7 +97,7 @@ function groupByKey(array, key){
 
 }
 
-function createQuery(table, select, where, groupBy){
+function createQuery(table, select, where, groupBy, orderBy){
 
   var query = "select ";
 
@@ -112,6 +112,7 @@ function createQuery(table, select, where, groupBy){
     }
   }
   if (groupBy) query += " group by " + groupBy;
+  if (orderBy) query += " order "    + orderBy;
 
   return query;
 

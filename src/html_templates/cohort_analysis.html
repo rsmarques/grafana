@@ -42,21 +42,48 @@ function getColor(val){
   // else                return '#212323';
 }
 
-function getTable(behaviour) {
+function getTable(behaviour, origin) {
 
   var gameDatasource       = $var-gameDatasource$;
   var analyticsDatasource  = $var-analyticsDatasource$;
 
   switch (behaviour){
     case 'all':
-      return {"table" : "nysa.api.users.active.count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"};
+      if (origin !== 'all') return {"table" : "nysa.api.users.active.count.1d.distinct.origin", "datasource" : gameDatasource, "key" : "user_id"};
+      else return {"table" : "nysa.api.users.active.count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"};
+
       break;
     case 'sign_up':
       return {"table" : "nysa.api.users.registered.count", "datasource" : analyticsDatasource, "key" : "user_id"};
+
       break;
     default:
       return {"table" : "nysa.api.events." + behaviour + ".count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"}; 
   }
+}
+
+function time0group(startDate, endDate, data) {
+
+  var dataIndex     = 0;
+  var initialGroup  = [];
+  var repeatedGroup = []; 
+
+   while (dataIndex < data.length && new Date(data[dataIndex].time) < endDate){
+    if (new Date(data[dataIndex].time) < startDate) {
+      dataIndex++;
+      continue;
+    }
+
+    var value = data[dataIndex][key];
+    if (initialGroup.indexOf(value) == -1) initialGroup.push(value);
+    else repeatedGroup.push(value);
+
+    dataIndex++;
+  }
+
+  return repeatedGroup;
+
+
 }
 
 require(['../config.js'], function(Settings){
@@ -65,17 +92,30 @@ require(['../config.js'], function(Settings){
   var timespan             = $var-timespan$;
   var initialBehaviour     = $var-initialBehaviour$;
   var nextBehaviour        = $var-nextBehaviour$;
+  var origin               = $var-origin$;
 
-  var initialTable         = getTable(initialBehaviour);
-  var nextTable            = getTable(nextBehaviour);
+  var originAllowed        = ['all', 'sign_up'];
 
-  var dates = datesBetween(timespan, startDate);
-  var start = dates[0].str;
-  var initialQuery = "select * from " + initialTable.table + " where time > '" + start + "' order asc";
-  var nextQuery    = "select * from " + nextTable.table    + " where time > '" + start + "' order asc";
+  // Only signup and all behaviours are currently available to origin cohort
+  if (origin !== 'all' && (originAllowed.indexOf(initialBehaviour) == -1 || originAllowed.indexOf(nextBehaviour) == -1)) origin = 'all';
 
-  var initialData   = getInfluxDbData(initialQuery, initialTable.datasource, Settings);
-  var nextData      = getInfluxDbData(nextQuery, nextTable.datasource, Settings);
+  var initialTable         = getTable(initialBehaviour, origin);
+  var nextTable            = getTable(nextBehaviour, origin);
+
+  //Cohort dates are calculated according to timespan
+  var dates   = datesBetween(timespan, startDate);
+  var start   = dates[0].str;
+
+  whereClause = [];
+  whereClause.push("time > '" + start + "'");
+  // if origin filter is active a where clause is added to the query
+  if (origin !== 'all') whereClause.push("origin = '" + origin + "'");
+
+  var initialQuery = createQuery(initialTable.table, "*", whereClause, "", "asc");
+  var nextQuery    = createQuery(nextTable.table,    "*", whereClause, "", "asc");
+
+  var initialData  = getInfluxDbData(initialQuery, initialTable.datasource, Settings);
+  var nextData     = getInfluxDbData(nextQuery, nextTable.datasource, Settings);
 
   var initialGroup = groupByTime(dates, initialData, initialTable.key);
   var nextGroup    = groupByTime(dates, nextData, nextTable.key);
