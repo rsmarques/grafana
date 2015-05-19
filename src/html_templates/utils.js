@@ -125,7 +125,7 @@ function groupByTime(dates, data, key){
   var dataIndex = 0;
 
   for (var i = 0; i < dates.length; i++){
-    var d = [];
+    var d     = {};
     startDate = dates[i].date;
     endDate   = i == dates.length - 1 ? new Date() : dates[i+1].date;
 
@@ -136,7 +136,8 @@ function groupByTime(dates, data, key){
       }
 
       var value = data[dataIndex][key];
-      if (d.indexOf(value) == -1) d.push(value);
+      if (d[value] === undefined) d[value] = 1;
+      else d[value]++;
       dataIndex++;
     }
 

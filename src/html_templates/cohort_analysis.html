@@ -128,28 +128,62 @@ require(['../config.js'], function(Settings){
     var row            = table.insertRow(i+1);
     var dateCell       = row.insertCell(0);
     var initCell       = row.insertCell(1);
-    var group          = initialGroup[dates[i].str];
+    var initialUsers   = Object.keys(initialGroup[dates[i].str]);
     
     dateCell.innerHTML = dates[i].str;
-    initCell.innerHTML = group.length;
-    initCount          = group.length;
+    initCount          = initialUsers.length;
+    initCell.innerHTML = initCount;
 
-    if (i < dates.length - 1) {
+    //In case timespan is daily 'day 0' is not calculated
+    if (!(i == 0 && timespan == 'd')) {
       th = document.createElement('th');
-      th.innerHTML = i + 1;
+      th.innerHTML = i > 0 ? i : '< 1';
       header.appendChild(th);
     }
 
-    for (var j = i+1; j < dates.length; j++) {
-      var index         = j-i;
-      var cell          = row.insertCell(index+1);
-      var subGroup      = intersect(group, nextGroup[dates[j].str]);
-      var perf          = Number(performance(subGroup.length, initCount));
+    var index = 0;
+
+    for (var j = i; j < dates.length; j++) {
+
+      //In case timespan is daily 'day 0' is not calculated
+      if (j == i && timespan == 'd') continue;
+
+      // Time '0'
+      if (index == 0) {
+        var initialDate   = new Date(dates[j].date);
+        var endDate       = j == dates.length - 1 ? new Date() : new Date (dates[j+1].date);
+        // Adding one day to end date (so users registered in last day can count)
+        endDate.setDate(endDate.getDate()+1);
+
+        var time0dates    = [{"str" : formatDate(initialDate), "date" : initialDate}, {"str" : formatDate(endDate), "date" : endDate}];
+        var time0group    = groupByTime(time0dates, nextData, nextTable.key)[dates[j].str];
+        var time0users    = Object.keys(time0group);
+
+        // Filter users that had at least 1 comeback
+        for (var k = 0; k < time0users.length; k++) {
+          var user_id = time0users[k];
+          if (time0group[user_id] <= 1) delete time0group[user_id];
+        }
+
+        var filteredUsers = Object.keys(time0group);
+
+        var subGroup      = intersect(initialUsers, filteredUsers);
+        var count         = subGroup.length;
+      }
+      else {
+        var nextUsers     = Object.keys(nextGroup[dates[j].str]);
+        var subGroup      = intersect(initialUsers, nextUsers);
+        var count         = subGroup.length;
+      }
+
+      var cell = row.insertCell(2 + index++);
+      var perf          = Number(performance(count, initCount));
       if (!isNaN(perf) && perf > maxPerformance) maxPerformance = perf;
-      cell.innerHTML    = subGroup.length + addPercentSpan(performance(subGroup.length, initCount));
+      cell.innerHTML    = count + addPercentSpan(performance(count, initCount));
     }
   }
 
+  // cell color is calculated
   $("#$panel.id$\\.cohort span").each(function() {
 
     var span = $(this)[0];
