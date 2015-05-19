@@ -101,11 +101,13 @@ function (angular, _, kbn) {
       var statsTable    = variable.stats_table;
       var statsVar      = variable.stats_variable;
       var distinct      = variable.distinct;
+      var where         = typeof variable.where !== "string" ? null : variable.where.length > 0 ? variable.where : null;
       var time          = {};
       var now           = previousDate ? previousDate + '||' : 'now';
 
       var day         = previousDate ? new Date(previousDate) : new Date();
       var dayDiff     = 1;
+      // Setting week dates to monday
       var weekDiff    = day.getDay() == 0 ? day.getDay() + 6 : day.getDay() - 1;
 
       time['current_day']   = kbn.parseDate(now);
@@ -126,28 +128,31 @@ function (angular, _, kbn) {
       var nowInfluxDb   = previousDate ? time['current_day']+'+1d' : 'now()';
       var relativeMonth = kbn.parseDate(now + '+1d').getMonth() != kbn.parseDate(now).getMonth() ? time['current_month'] : nowInfluxDb + '-30d';
 
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['current_day'],   nowInfluxDb), "var" : "current_day"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['current_week'],  nowInfluxDb), "var" : "current_week"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['current_month'], nowInfluxDb), "var" : "current_month"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['current_day'],   nowInfluxDb, distinct, where), "var" : "current_day"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['current_week'],  nowInfluxDb, distinct, where), "var" : "current_week"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['current_month'], nowInfluxDb, distinct, where), "var" : "current_month"});
 
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_day'],   time['current_day']),   "var" : "previous_day"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_week'],  time['current_week']),  "var" : "previous_week"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_month'], time['current_month']), "var" : "previous_month"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['previous_day'],   time['current_day'], distinct, where),   "var" : "previous_day"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['previous_week'],  time['current_week'], distinct, where),  "var" : "previous_week"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['previous_month'], time['current_month'], distinct, where), "var" : "previous_month"});
 
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_day'],   nowInfluxDb + '-1d'),  "var" : "relative_day"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_week'],  nowInfluxDb + '-7d'),  "var" : "relative_week"});
-      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, distinct, time['previous_month'], relativeMonth),        "var" : "relative_month"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['previous_day'],   nowInfluxDb + '-1d', distinct, where),  "var" : "relative_day"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['previous_week'],  nowInfluxDb + '-7d', distinct, where),  "var" : "relative_week"});
+      stats.push({"query" : this.setInfluxDbQueryStat(statsTable, statsVar, time['previous_month'], relativeMonth, distinct, where),        "var" : "relative_month"});
 
       return stats;
 
     };
 
-    this.setInfluxDbQueryStat = function(table, row, distinct, startTime, endTime) {
+    this.setInfluxDbQueryStat = function(table, row, startTime, endTime, distinct, where) {
 
       var rowClause   = distinct ? "distinct(" + row + ")" : row;
       var whereClause = endTime ? " where time > " + startTime + " and time < " + endTime : " where time > " + startTime;
+      if (where !== null) whereClause += " and " + where;
 
-      return "select count(" + rowClause + ") from " + table + whereClause;
+      var query = "select count(" + rowClause + ") from " + table + whereClause;
+
+      return query;
 
     };
 
