@@ -109,7 +109,13 @@ require(['../config.js'], function(Settings){
   whereClause = [];
   whereClause.push("time > '" + start + "'");
   // if origin filter is active a where clause is added to the query
-  if (origin !== 'all') whereClause.push("origin = '" + origin + "'");
+  if (origin !== 'all') {
+    if (origin !== 'INT') whereClause.push("origin = '" + origin + "'");
+    else {
+      whereClause.push("origin <> 'PT'");
+      whereClause.push("origin <> 'GB'");
+    }
+  }
 
   var initialQuery = createQuery(initialTable.table, "*", whereClause, "", "asc");
   var nextQuery    = createQuery(nextTable.table,    "*", whereClause, "", "asc");

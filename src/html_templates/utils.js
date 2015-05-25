@@ -200,6 +200,8 @@ function datesBetween(timespan, startDate, endDate){
       default:
         current.setDate(current.getDate()+7);
     }
+    // Setting hour to 0 due to timezone hour changing in some months
+    current.setHours(0);
   }
 
   return dates;
