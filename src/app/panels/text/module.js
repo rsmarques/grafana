@@ -63,6 +63,7 @@ function (angular, app, _, require, PanelMeta) {
         var templates = ['cohort_analysis',
                      'dashboard_artists',
                      'dashboard_au',
+                     'dashboard_au_stats',
                      'dashboard_country_distribution',
                      'dashboard_cheaters',
                      'dashboard_kpis',

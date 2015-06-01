@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+</head>
+<body>
+
+<table id = "$panel.id$.stats" class="stats" align="center">
+  <tr>
+    <th/>
+    <th>DAU</th>
+    <th>WAU</th>
+    <th>MAU</th>
+  </tr>
+  <tr>
+    <th>Active Users</th>
+    <td id="$panel.id$.current.day"></td>
+    <td id="$panel.id$.current.week"></td>
+    <td id="$panel.id$.current.month"></td>
+  </tr>
+  <tr>
+    <th>User Base</th>
+    <td id="$panel.id$.count" colspan="3"></td>
+  </tr>
+  <tr>
+    <th>Performance</th>
+    <td id="$panel.id$.performance.day" class="performance"></td>
+    <td id="$panel.id$.performance.week" class="performance"></td>
+    <td id="$panel.id$.performance.month" class="performance"></td>
+  </tr>
+</table>
+
+<script>
+
+function getMonthlyActiveUsers(activeUserData, userSignups, key) {
+
+  var count = 0;
+
+  if (activeUserData !== undefined) {
+    for (var i = 0; i < activeUserData.length; i++) {
+      var userId = activeUserData[i][key];
+      // if the user came back two days to the platform or is an old register
+      if (activeUserData[i].count > 1 || userSignups[userId] == undefined) count++;
+    }
+  }
+
+  return count;
+}
+
+function getActiveUserData(startDate, endDate, origin, Settings) {
+
+  var baseClause   = [];
+  var originClause = [];
+  var timeClause   = [];
+
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$;
+
+  var betaClause = "time > '" + '2015-01-16' + "'";
+  timeClause.push("time > '" + startDate + "'");
+  if (typeof endDate !== "undefined") {
+    timeClause.push("time < '" + endDate + "'");
+    baseClause.push("time < '" + endDate + "'");
+  }
+
+  if (origin !== 'all') {
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct.origin";    
+    var activeUserKey   = "user_id";    
+    if (origin !== 'INT') originClause.push("origin = '" + origin + "'");
+    else {
+      originClause.push("origin <> 'PT'");
+      originClause.push("origin <> 'GB'");
+    }
+
+    baseClause  = baseClause.concat(originClause)
+    timeClause  = timeClause.concat(originClause);
+  } else {
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct";
+    var activeUserKey   = "distinct";
+  }
+
+  var userTable = "nysa.api.users.registered.count";
+
+  var userBaseQuery       = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat([betaClause]), "");
+  var activeUserQuery     = createQuery(activeUserTable, "count(" + activeUserKey + ")", timeClause, activeUserKey);
+  var userSignupsQuery    = createQuery(userTable,       "distinct(user_id)", timeClause, "");
+
+  var userBase            = getInfluxDbData(userBaseQuery, gameDatasource, Settings)[0].count;
+
+  var userSignups         = groupByKey(getInfluxDbData(userSignupsQuery, analyticsDatasource, Settings), "distinct");
+  var activeUserData      = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
+  var activeUsers         = getMonthlyActiveUsers(activeUserData, userSignups, activeUserKey);
+
+  return {"activeUsers" : activeUsers, "userBase" : userBase};
+}
+
+function getAverageDailyUsers(startDate, endDate, origin, Settings) {
+
+  var whereClause  = [];
+  var baseClause   = [];
+  var originClause = [];
+
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$; 
+
+  whereClause.push("time > '" + startDate + "'");
+  baseClause.push("time > '" + '2015-01-16' + "'");
+  if (typeof endDate !== "undefined") {
+    whereClause.push("time < '" + endDate + "'");
+  }
+
+  if (origin !== 'all') {
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct.origin";    
+    var activeUserKey   = "user_id";    
+    if (origin !== 'INT') originClause.push("origin = '" + origin + "'");
+    else {
+      originClause.push("origin <> 'PT'");
+      originClause.push("origin <> 'GB'");
+    }
+
+    baseClause  = baseClause.concat(originClause)
+    whereClause = whereClause.concat(originClause);
+  } else {
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct";
+    var activeUserKey   = "distinct";
+  }
+
+  var activeUserQuery = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", whereClause, "time(1d)");
+  var activeUserData  = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
+
+  var startUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + startDate + "'"]), "");
+  var startUserBase   = getInfluxDbData(startUserQuery, gameDatasource, Settings)[0].count;
+  var finalUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + endDate + "'"]), "");
+  var finalUserBase   = getInfluxDbData(finalUserQuery, gameDatasource, Settings)[0].count;
+
+  var sumActiveUsers  = activeUserData !== undefined ? activeUserData.reduce(function (a,b) { return a + b.count; }, 0) : 0;
+  var avgActiveUsers  = sumActiveUsers / activeUserData.length;
+
+  var avgUserBase     = average([startUserBase, finalUserBase]);
+
+  return {"activeUsers" : avgActiveUsers, "userBase" : avgUserBase};
+  // return (avgActiveUsers / avgUserBase * 100).toFixed(1);
+}
+
+require(["../config.js"], function(Settings){
+
+  var origin               = $var-origin$;
+  var date                 = $var-date$;
+
+  var currentDate          = new Date(date);
+  var now                  = new Date();
+  endDate                  = currentDate > now ? now : currentDate;
+  var weekDate             = getMonday(endDate);
+  var startDate            = getFirstDayOfMonth(endDate);
+  endDate.setDate(endDate.getDate()+1);
+
+  var DAUAvg  = getAverageDailyUsers(formatDate(startDate), formatDate(endDate), origin, Settings);
+
+  var weeks   = datesBetween("w", startDate, endDate);
+  var WAUAvg  = {"activeUsers" : [], "userBase" : []};
+
+  for (var i = 0; i < weeks.length - 1; i++) {
+
+    var startWeek = weeks[i].str;
+    var endWeek   = weeks[i+1].str;
+
+    WAU = getActiveUserData(startWeek, endWeek, origin, Settings);
+    WAUAvg.activeUsers.push(WAU.activeUsers);
+    WAUAvg.userBase.push(WAU.userBase);
+  }
+
+  WAUAvg.activeUsers = average(WAUAvg.activeUsers);
+  WAUAvg.userBase    = average(WAUAvg.userBase);
+
+  var MAUAvg = getActiveUserData(formatDate(startDate), formatDate(endDate), origin, Settings);
+
+  var userBase = MAUAvg.userBase;  
+
+  document.getElementById("$panel.id$.current.day").innerHTML   = DAUAvg.activeUsers.toFixed(0);
+  document.getElementById("$panel.id$.current.week").innerHTML  = WAUAvg.activeUsers.toFixed(0);
+  document.getElementById("$panel.id$.current.month").innerHTML = MAUAvg.activeUsers.toFixed(0);
+
+  document.getElementById("$panel.id$.count").innerHTML         = userBase;
+
+  document.getElementById("$panel.id$.performance.day").innerHTML          = performance(DAUAvg.activeUsers, DAUAvg.userBase) + ' %';
+  document.getElementById("$panel.id$.performance.week").innerHTML         = performance(WAUAvg.activeUsers, WAUAvg.userBase) + ' %';
+  document.getElementById("$panel.id$.performance.month").innerHTML        = performance(MAUAvg.activeUsers, MAUAvg.userBase) + ' %';
+
+});
+
+</script>
+
+</body>
+</html>
