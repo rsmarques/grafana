@@ -66,8 +66,8 @@ function getRealizedData(Settings, startDate, endDate) {
   var betaClause = "time > '" + '2015-01-16' + "'";
   timeClause.push("time > '" + startDate + "'");
   if (typeof endDate !== "undefined") {
-    timeClause.push("time < '" + endDate + "'");
-    baseClause.push("time < '" + endDate + "'");
+    timeClause.push("time < '" + endDate + "'-1s");
+    baseClause.push("time < '" + endDate + "'-1s");
   }
 
   var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");

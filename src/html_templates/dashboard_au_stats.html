@@ -60,8 +60,8 @@ function getActiveUserData(startDate, endDate, origin, Settings) {
   var betaClause = "time > '" + '2015-01-16' + "'";
   timeClause.push("time > '" + startDate + "'");
   if (typeof endDate !== "undefined") {
-    timeClause.push("time < '" + endDate + "'");
-    baseClause.push("time < '" + endDate + "'");
+    timeClause.push("time < '" + endDate + "'-1s");
+    baseClause.push("time < '" + endDate + "'-1s");
   }
 
   if (origin !== 'all') {
@@ -107,7 +107,7 @@ function getAverageDailyUsers(startDate, endDate, origin, Settings) {
   whereClause.push("time > '" + startDate + "'");
   baseClause.push("time > '" + '2015-01-16' + "'");
   if (typeof endDate !== "undefined") {
-    whereClause.push("time < '" + endDate + "'");
+    whereClause.push("time < '" + endDate + "'-1s");
   }
 
   if (origin !== 'all') {
@@ -129,9 +129,9 @@ function getAverageDailyUsers(startDate, endDate, origin, Settings) {
   var activeUserQuery = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", whereClause, "time(1d)");
   var activeUserData  = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
 
-  var startUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + startDate + "'"]), "");
+  var startUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + startDate + "'-1s"]), "");
   var startUserBase   = getInfluxDbData(startUserQuery, gameDatasource, Settings)[0].count;
-  var finalUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + endDate + "'"]), "");
+  var finalUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + endDate + "'-1s"]), "");
   var finalUserBase   = getInfluxDbData(finalUserQuery, gameDatasource, Settings)[0].count;
 
   var sumActiveUsers  = activeUserData !== undefined ? activeUserData.reduce(function (a,b) { return a + b.count; }, 0) : 0;
