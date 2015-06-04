@@ -33,9 +33,14 @@
   </tr>
 </table>
 
+<p id="$panel.id$.description" align="center" style="padding-top: 15px"/>
+
 <script>
 
-var stats = $var-stats$;
+var stats       = $var-stats$;
+var description = '$var-description$';
+
+if (description !== '') document.getElementById("$panel.id$.description").innerHTML  = description;
 
 document.getElementById("$panel.id$.current.week").innerHTML  = stats['current_week'];
 document.getElementById("$panel.id$.current.month").innerHTML = stats['current_month'];
