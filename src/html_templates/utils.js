@@ -26,9 +26,10 @@ function unpackObject(a, cache, operator, percentage) {
             cache[prop] = merge(cache[prop], a[prop]);
           } else {
             eval('cache[prop] ' + operator + '= a[prop]');
-            cache[prop] = cache[prop].toFixed(1);
             if (typeof percentage !== "undefined" && percentage === true) {
-              cache[prop] = (cache[prop] * 100).toFixed(1);
+              cache[prop] = (cache[prop] * 100).toFixed(2);
+            } else {
+              cache[prop] = cache[prop].toFixed(2);
             }
           }
         }

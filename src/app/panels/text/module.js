@@ -71,6 +71,7 @@ function (angular, app, _, require, PanelMeta) {
                      'dashboard_performance',
                      'dashboard_performance_wm',
                      'dashboard_referrals',
+                     'dashboard_viral',
                      'perfomance',
                      'scorecard',
                      'scorecard_active_time',

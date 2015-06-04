@@ -18,6 +18,7 @@ function (angular, _) {
       includeAll: false,
       allFields: false,
       distinct: false,
+      cumulative: false,
       where: null,
       allFormat: 'glob',
     };
