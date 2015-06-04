@@ -6,16 +6,16 @@ function is_object(mixed_var) {
   return mixed_var !== null && typeof mixed_var == 'object';
 }
 
-function merge(a, b, operator) {
+function merge(a, b, operator, percentage) {
 
   var cache = {};
-  cache = unpackObject(a, cache, operator);
-  cache = unpackObject(b, cache, operator);
+  cache = unpackObject(a, cache, operator, percentage);
+  cache = unpackObject(b, cache, operator, percentage);
 
   return cache;
 }
 
-function unpackObject(a, cache, operator) {
+function unpackObject(a, cache, operator, percentage) {
   for (prop in a) {
     if (a.hasOwnProperty(prop)) {
       if (cache[prop] === undefined) {
@@ -26,6 +26,10 @@ function unpackObject(a, cache, operator) {
             cache[prop] = merge(cache[prop], a[prop]);
           } else {
             eval('cache[prop] ' + operator + '= a[prop]');
+            cache[prop] = cache[prop].toFixed(1);
+            if (typeof percentage !== "undefined" && percentage === true) {
+              cache[prop] = (cache[prop] * 100).toFixed(1);
+            }
           }
         }
       }
