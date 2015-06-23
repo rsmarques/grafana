@@ -67,6 +67,7 @@ function (angular, app, _, require, PanelMeta) {
                      'dashboard_country_distribution',
                      'dashboard_cheaters',
                      'dashboard_kpis',
+                     'dashboard_invite_conversion',
                      'dashboard_wmau',
                      'dashboard_performance',
                      'dashboard_performance_wm',

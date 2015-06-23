@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+</head>
+<body>
+
+<p/>
+<table id="$panel.id$.invite_table" class="stats" align="center">
+  <tr>
+    <th/>
+    <td>Total</td>
+    <td>This Week</td>
+    <td>This Month</td>
+  </tr>
+  <tr>
+    <td>Email Invites Sent</td>
+    <td id="$panel.id$.invites.total"/>
+    <td id="$panel.id$.invites.week"/>
+    <td id="$panel.id$.invites.month"/>
+  </tr>
+  <tr>
+    <td>Users Converted</td>
+    <td id="$panel.id$.invites_converted.total"/>
+    <td id="$panel.id$.invites_converted.week"/>
+    <td id="$panel.id$.invites_converted.month"/>
+  </tr>
+  <tr>
+    <td>Users Already on Tradiio</td>
+    <td id="$panel.id$.invites_already.total"/>
+    <td id="$panel.id$.invites_already.week"/>
+    <td id="$panel.id$.invites_already.month"/>
+  </tr>
+  <tr>
+    <td>Conversion (%)</td>
+    <td id="$panel.id$.conversion.total"/>
+    <td id="$panel.id$.conversion.week"/>
+    <td id="$panel.id$.conversion.month"/>
+  </tr>
+</table>
+
+<p id="$panel.id$.done"/>
+
+<script>
+
+function getReferralData(Settings, date) {
+
+  var referralTable        = "nysa.api.users.referral.count";
+  var userTable            = "nysa.api.users.registered.count";
+  var invitesTable         = "nysa.api.events.invite_friends.count";
+
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$;
+
+  var currentDate          = new Date(date);
+  var now                  = new Date();
+  currentDate              = currentDate > now ? now : currentDate;
+  var weekDate             = getMonday(currentDate);
+  weekDate.setHours(0,0,0,0);
+  var monthDate            = getFirstDayOfMonth(currentDate);
+  monthDate.setHours(0,0,0,0);
+  currentDate.setDate(currentDate.getDate()+1);
+
+  var invitesQuery        = createQuery(invitesTable, "*", [], "", "desc");
+  var usersQuery          = createQuery(userTable, "*", [], "", "desc");
+  // var referralQuery       = createQuery(referralTable, "*", [], "", "desc");
+
+  var inviteData          = getInfluxDbData(invitesQuery, gameDatasource, Settings);
+  var userData            = getInfluxDbData(usersQuery, analyticsDatasource, Settings);
+  // var referralData        = getInfluxDbData(referralQuery, analyticsDatasource, Settings);
+
+  inviteDataGroupedByEmail  = inviteData.slice();
+  inviteDataGroupedByEmail  = groupByKey(inviteData, "extrainfo");
+
+  // inviteDataGroupedBySource = inviteData.slice();
+  // inviteDataGroupedBySource = groupByKey(inviteData, "source");
+
+  userDataGroupedByEmail    = userData.slice();
+  userDataGroupedByEmail    = groupByKey(userDataGroupedByEmail, "email");
+
+  var invitedUsers              = Object.keys(inviteDataGroupedByEmail);
+  var invitedUsersWeek          = 0;
+  var invitedUsersMonth         = 0;
+
+  var inviteConvertedCount      = 0;
+  var inviteConvertedCountWeek  = 0;
+  var inviteConvertedCountMonth = 0;
+
+  var usersOnTradiioCount       = 0;
+  var usersOnTradiioCountWeek   = 0;
+  var usersOnTradiioCountMonth  = 0;
+
+  for (var i = 0; i < invitedUsers.length; i++) {
+
+    var email       = invitedUsers[i];
+    var emailParsed = email.replace(/"/g,"");
+
+    var testDate = new Date(inviteDataGroupedByEmail[email].time);
+
+    inviteDate = new Date(inviteDataGroupedByEmail[email].time);
+
+    if (inviteDate > weekDate)  invitedUsersWeek++;
+    if (inviteDate > monthDate) invitedUsersMonth++;
+
+    if (userDataGroupedByEmail[emailParsed] !== undefined) {
+
+      userDate   = new Date(userDataGroupedByEmail[emailParsed].time);
+
+      usersOnTradiioCount++;
+      if (inviteDate > weekDate)  usersOnTradiioCountWeek++;
+      if (inviteDate > monthDate) usersOnTradiioCountMonth++;
+
+      if (inviteDate < userDate) {
+        inviteConvertedCount++;
+        if (inviteDate > weekDate)  inviteConvertedCountWeek++;
+        if (inviteDate > monthDate) inviteConvertedCountMonth++;
+      }   
+    } else {
+      // Users not converted
+      // console.log(emailParsed);
+    }
+  }
+
+  var data = {
+    "invitedUsers"                : invitedUsers.length,
+    "invitedUsersConverted"       : inviteConvertedCount,
+    "invitedUsersOnTradiio"       : usersOnTradiioCount - inviteConvertedCount,
+    "invitedUsersWeek"            : invitedUsersWeek,
+    "invitedUsersConvertedWeek"   : inviteConvertedCountWeek,
+    "invitedUsersOnTradiioWeek"   : usersOnTradiioCountWeek - inviteConvertedCountWeek,
+    "invitedUsersMonth"           : invitedUsersMonth,
+    "invitedUsersConvertedMonth"  : inviteConvertedCountMonth,
+    "invitedUsersOnTradiioMonth"  : usersOnTradiioCountMonth - inviteConvertedCountMonth
+  };
+
+  return data;
+}
+
+require(["../config.js"], function(Settings){
+
+  var date = $var-date$;
+
+  var referralData = getReferralData(Settings, date);
+
+  document.getElementById("$panel.id$.invites.total").innerHTML            = referralData.invitedUsers;
+  document.getElementById("$panel.id$.invites.week").innerHTML             = referralData.invitedUsersWeek;
+  document.getElementById("$panel.id$.invites.month").innerHTML            = referralData.invitedUsersMonth;
+
+  document.getElementById("$panel.id$.invites_converted.total").innerHTML  = referralData.invitedUsersConverted;
+  document.getElementById("$panel.id$.invites_converted.week").innerHTML   = referralData.invitedUsersConvertedWeek;
+  document.getElementById("$panel.id$.invites_converted.month").innerHTML  = referralData.invitedUsersConvertedMonth;
+
+  document.getElementById("$panel.id$.invites_already.total").innerHTML    = referralData.invitedUsersOnTradiio;
+  document.getElementById("$panel.id$.invites_already.week").innerHTML     = referralData.invitedUsersOnTradiioWeek;
+  document.getElementById("$panel.id$.invites_already.month").innerHTML    = referralData.invitedUsersOnTradiioMonth;
+
+  document.getElementById("$panel.id$.conversion.total").innerHTML         = performance(referralData.invitedUsersConverted, referralData.invitedUsers - referralData.invitedUsersOnTradiio) + ' %';
+  document.getElementById("$panel.id$.conversion.week").innerHTML          = performance(referralData.invitedUsersConvertedWeek, referralData.invitedUsersWeek - referralData.invitedUsersOnTradiioWeek) + ' %';
+  document.getElementById("$panel.id$.conversion.month").innerHTML         = performance(referralData.invitedUsersConvertedMonth, referralData.invitedUsersMonth- referralData.invitedUsersOnTradiioMonth) + ' %';
+
+});
+
+</script>
+
+</body>
+</html>

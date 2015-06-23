@@ -116,8 +116,8 @@ function createQuery(table, select, where, groupBy, orderBy){
       query += i == 0 ? where[i] + " " : "and " + where[i] + " ";
     }
   }
-  if (groupBy) query += " group by " + groupBy;
-  if (orderBy) query += " order "    + orderBy;
+  if (groupBy && groupBy.length > 0) query += " group by " + groupBy;
+  if (orderBy && orderBy.length > 0) query += " order "    + orderBy;
 
   return query;
 
