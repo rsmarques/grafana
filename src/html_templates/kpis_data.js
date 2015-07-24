@@ -34,7 +34,52 @@ function loadObjectives() {
                     '2015-08-01' : 30463, '2015-09-01' :  40467, '2015-10-01' :  54327, '2015-11-01' :  73701, '2015-12-01' : 108754},
 
     "MAU":         {"2015-02-01" :    40, "2015-03-01" :     61, "2015-04-01" :     35, '2015-05-01' :     35, '2015-06-01' :     35, '2015-07-01' :     38,
-                    '2015-08-01' :    36, '2015-09-01' :     35, '2015-10-01' :     34, '2015-11-01' :     33, '2015-12-01' :     35}
+                    '2015-08-01' :    36, '2015-09-01' :     35, '2015-10-01' :     34, '2015-11-01' :     33, '2015-12-01' :     35},
+
+    "DAU":         {"2015-02-01" :  1280, "2015-03-01" :   9654, "2015-04-01" :  10500, '2015-05-01' :  15750, '2015-06-01' :  25000, '2015-07-01' :  23259,
+                    '2015-08-01' : 30463, '2015-09-01' :  40467, '2015-10-01' :  54327, '2015-11-01' :  73701, '2015-12-01' : 108754},
+
+    "WAU":         {"2015-02-01" :  1280, "2015-03-01" :   9654, "2015-04-01" :  10500, '2015-05-01' :  15750, '2015-06-01' :  25000, '2015-07-01' :  23259,
+                    '2015-08-01' : 30463, '2015-09-01' :  40467, '2015-10-01' :  54327, '2015-11-01' :  73701, '2015-12-01' : 108754},
+
+    "STK":         {"2015-02-01" :    40, "2015-03-01" :     61, "2015-04-01" :     35, '2015-05-01' :     35, '2015-06-01' :     35, '2015-07-01' :     38,
+                    '2015-08-01' :    36, '2015-09-01' :     35, '2015-10-01' :     34, '2015-11-01' :     33, '2015-12-01' :     35},
+  };
+
+  return objectives;
+
+}
+
+function loadWeeklyObjectives() {
+
+  var objectives    = {
+    "MNUALL":      {'2015-07-01' : [  724,   834,  2000,  2200,  2600],
+                    '2015-08-01' : [ 2600,  3000,  3500,  4000,  4700,  5400],
+                    '2015-09-01' : [ 5400,  6300,  7300,  8500,  9800],
+                    '2015-10-01' : [ 9800, 11400, 13200, 15300, 17800],
+                    '2015-11-01' : [20700, 23900, 27800, 32200, 37300],
+                    '2015-12-01' : [37300, 43400, 50300, 58300,     0]},
+
+    "WAU":         {'2015-07-01' : [    0,     0,  5600,  5820,  6080],
+                    '2015-08-01' : [ 6080,  6380,  6730,  7130,  7600,  8140],
+                    '2015-09-01' : [ 8140,  8770,  9500, 10350, 11330],
+                    '2015-10-01' : [11330, 12470, 13790, 15320, 17100],
+                    '2015-11-01' : [19170, 21560, 24340, 27560, 31290],
+                    '2015-12-01' : [31290, 35630, 40660, 46490,     0]},
+
+    "DAU":         {'2015-07-01' : [    0,     0,  2800,  2910,  3040],
+                    '2015-08-01' : [ 3040,  3190,  3365,  3565,  3800,  4070],
+                    '2015-09-01' : [ 4070,  4385,  4750,  5175,  5665],
+                    '2015-10-01' : [ 5665,  6235,  6895,  7660,  8550],
+                    '2015-11-01' : [ 9585, 10780, 12170, 13780, 15645],
+                    '2015-12-01' : [15645, 17815, 20330, 23245,     0]},
+
+    "STK":         {'2015-07-01' : [ 0.00,  0.00, 18.42, 19.14, 20.00],
+                    '2015-08-01' : [20.00, 16.79, 17.71, 18.76, 20.00, 15.73],
+                    '2015-09-01' : [15.73, 16.95, 18.36, 20.00, 13.51],
+                    '2015-10-01' : [13.51, 14.79, 16.28, 18.00, 12.59],
+                    '2015-11-01' : [14.05, 15.75, 17.72, 20.00, 11.86],
+                    '2015-12-01' : [11.86, 13.46, 15.33, 17.49,     0]}
   };
 
   return objectives;
@@ -46,20 +91,23 @@ function loadKPIs() {
   var kpis = [
     // {"title" : "Artist Base", "type" : "artist", "objective" : "ARTISTCOUNT"},
 
-    {"title" : "MNA", "type" : "artist",  "origin" : "PT",  "objective" : "MNAPT"},
-    {"title" : "MNA", "type" : "artist",  "origin" : "GB",  "objective" : "MNAGB"},
-    {"title" : "MNA", "type" : "artist",  "origin" : "INT", "objective" : "MNAINT"},
-    {"title" : "MNA", "type" : "artist",  "origin" : "ALL", "objective" : "MNAALL"},
+    {"title" : "MNA", "type" : "artist",  "origin" : "PT",  "objective" : "MNAPT", "cumulative": true},
+    {"title" : "MNA", "type" : "artist",  "origin" : "GB",  "objective" : "MNAGB", "cumulative": true},
+    {"title" : "MNA", "type" : "artist",  "origin" : "INT", "objective" : "MNAINT", "cumulative": true},
+    {"title" : "MNA", "type" : "artist",  "origin" : "ALL", "objective" : "MNAALL", "cumulative": true},
 
     // {"title" : "User Base", "type" : "user", "objective" : "USERCOUNT"},
 
-    {"title" : "MNU", "type" : "user",  "origin" : "PT",  "objective" : "MNUPT"},
-    {"title" : "MNU", "type" : "user",  "origin" : "GB",  "objective" : "MNUGB"},
-    {"title" : "MNU", "type" : "user",  "origin" : "INT", "objective" : "MNUINT"},
-    {"title" : "MNU", "type" : "user",  "origin" : "ALL", "objective" : "MNUALL"},
+    // {"title" : "MNU", "type" : "user",  "origin" : "PT",  "objective" : "MNUPT"},
+    // {"title" : "MNU", "type" : "user",  "origin" : "GB",  "objective" : "MNUGB"},
+    // {"title" : "MNU", "type" : "user",  "origin" : "INT", "objective" : "MNUINT"},
 
-    {"title" : "AU",  "type" : "active_user",  "objective" : "AU"},
-    {"title" : "MAU",  "type" : "active_user",  "percentage" : true, "objective" : "MAU"}
+    {"title" : "AU",   "type" : "active_user",  "objective" : "AU", "cumulative": false},
+    {"title" : "MAU",  "type" : "active_user",  "percentage" : true, "objective" : "MAU", "cumulative": false},
+    {"title" : "DAU",  "type" : "active_user",  "objective" : "DAU", "cumulative": false},
+    {"title" : "WAU",  "type" : "active_user",  "objective" : "WAU", "cumulative": false},
+    {"title" : "Stickiness",  "type" : "active_user",  "percentage" : true,  "objective" : "STK", "cumulative": false},
+    {"title" : "MNU", "type" : "user",  "origin" : "ALL", "objective" : "MNUALL", "cumulative": true}
 
   ];
 

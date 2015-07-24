@@ -18,7 +18,7 @@
 
 <script>
 
-function getKPIValue(kpi, realizedData) {
+function getKPIValue(kpi, realizedData, currentMAU) {
 
   var ret = "--";
   if (kpi.type == 'artist' || kpi.type == 'user') {
@@ -45,11 +45,61 @@ function getKPIValue(kpi, realizedData) {
     }
   }
   else {
-    if (kpi.title === "AU") ret = realizedData.activeUsers;
-    else ret = performance(realizedData.activeUsers, realizedData.userBase);
+    if      (kpi.title === "AU")         ret = realizedData.activeUsers;
+    else if (kpi.title === "MAU")        ret = performance(realizedData.activeUsers, realizedData.userBase);
+    else if (kpi.title === "DAU")        ret = realizedData.dailyActiveUsers;
+    if      (kpi.title === "WAU")        ret = realizedData.activeUsers;
+    else if (kpi.title === "Stickiness") ret = performance(realizedData.dailyActiveUsers, currentMAU ? currentMAU : realizedData.activeUsers);
   }
 
   return ret;
+}
+
+function getAverageDailyUsers(startDate, endDate, origin, Settings) {
+
+  var whereClause  = [];
+  var baseClause   = [];
+  var originClause = [];
+
+  var gameDatasource       = $var-gameDatasource$;
+  var analyticsDatasource  = $var-analyticsDatasource$; 
+
+  whereClause.push("time > '" + startDate + "'");
+  baseClause.push("time > '" + '2015-01-16' + "'");
+  if (typeof endDate !== "undefined") {
+    whereClause.push("time < '" + endDate + "'-1s");
+  }
+
+  if (origin !== 'all') {
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct.origin";    
+    var activeUserKey   = "user_id";    
+    if (origin !== 'INT') originClause.push("origin = '" + origin + "'");
+    else {
+      originClause.push("origin <> 'PT'");
+      originClause.push("origin <> 'GB'");
+    }
+
+    baseClause  = baseClause.concat(originClause)
+    whereClause = whereClause.concat(originClause);
+  } else {
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct";
+    var activeUserKey   = "distinct";
+  }
+
+  var activeUserQuery = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", whereClause, "time(1d)");
+  var activeUserData  = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
+
+  var startUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + startDate + "'-1s"]), "");
+  var startUserBase   = getInfluxDbData(startUserQuery, gameDatasource, Settings)[0].count;
+  var finalUserQuery  = createQuery(activeUserTable, "count(distinct(" + activeUserKey + "))", baseClause.concat(["time < '" + endDate + "'-1s"]), "");
+  var finalUserBase   = getInfluxDbData(finalUserQuery, gameDatasource, Settings)[0].count;
+
+  var sumActiveUsers  = activeUserData !== undefined ? activeUserData.reduce(function (a,b) { return a + b.count; }, 0) : 0;
+  var avgActiveUsers  = (sumActiveUsers / activeUserData.length).toFixed(0);
+
+  var avgUserBase     = average([startUserBase, finalUserBase]);
+
+  return {"activeUsers" : isNaN(avgActiveUsers) ? 0 : avgActiveUsers, "userBase" : avgUserBase};
 }
 
 function getRealizedData(Settings, startDate, endDate) {
@@ -63,6 +113,7 @@ function getRealizedData(Settings, startDate, endDate) {
 
   var timeClause = [];
   var baseClause = [];
+  var activeUserClause = [];
   var betaClause = "time > '" + '2015-01-16' + "'";
   timeClause.push("time > '" + startDate + "'");
   if (typeof endDate !== "undefined") {
@@ -91,9 +142,12 @@ function getRealizedData(Settings, startDate, endDate) {
   var activeUserData      = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
   var activeUsers         = getMonthlyActiveUsers(activeUserData, userSignups);
 
+  var dailyActiveUsers    = getAverageDailyUsers(startDate, endDate, "all", Settings)["activeUsers"];
+
   var ret = {
     "activeUsers"     : activeUsers,
     "activeUserData"  : activeUserData,
+    "dailyActiveUsers": dailyActiveUsers,
     "userSignups"     : userSignups,
     "userBase"        : userBase,
     "userData"        : userData,
@@ -106,14 +160,28 @@ function getRealizedData(Settings, startDate, endDate) {
   return ret;
 }
 
-function KPIDiff(realizedData, objectives, kpis, date) {
+function KPIDiff(realizedData, objectives, kpis, date, objectivesWeek, weekIndex, cumulativeFactor, remainingFactor) {
 
   var diff = {};
+  var previousObjective = 0;
 
   for (var i = 0; i < kpis.length; i++) {
     var kpi             = kpis[i];
     var realized        = getKPIValue(kpi, realizedData);
-    diff[kpi.objective] = objectives[kpi.objective][date] - realized;
+    if (objectivesWeek && objectivesWeek[kpi.objective]) {
+
+      if (kpi.cumulative) {
+        // We have to sum previous objectives
+        for (var j = 0; j < weekIndex; j++) previousObjective += objectivesWeek[kpi.objective][date][j];
+      }
+
+      var objective     =  objectivesWeek[kpi.objective][date][weekIndex];
+      objective        *= kpi.cumulative ? cumulativeFactor : remainingFactor;
+
+    } else {
+      var objective     =  objectives[kpi.objective][date];
+    }
+    diff[kpi.objective] = kpi.cumulative ? objective - realized + previousObjective : objective;
   }
 
   return diff;
@@ -161,6 +229,7 @@ require(["../config.js"], function(Settings){
 
   var kpis           = loadKPIs();
   var objectives     = loadObjectives();
+  var objectivesWeek = loadWeeklyObjectives();
 
   var startDateStr         = $var-startDate$;
   var endDateStr           = $var-endDate$;
@@ -222,10 +291,13 @@ require(["../config.js"], function(Settings){
   blankRowArray = blankRowArray.concat([monthRow, objRow]);
   insertBlankCells(blankRowArray);
 
+  var currentMAU = data["activeUsers"];
+
   // Remaining weeks of current month are calculated
   var currentMonth    = dates[dates.length - 1].str;
   var nextMonth       = new Date(dates[dates.length - 1].date);
   nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
+  var monthDays       = dateDiffInDays(new Date(currentMonth), nextMonth);
 
   var nextWeeks       = datesBetween('w', currentMonth, nextMonth);
   // If first monday is in the previous month the dates are rearraged
@@ -264,7 +336,7 @@ require(["../config.js"], function(Settings){
       currentData    = getRealizedData(Settings, nextWeeks[i].str, nextDate);
       previousData   = getRealizedData(Settings, currentMonth, nextWeeks[i].str);
 
-      kpiPerformance = KPIDiff(previousData, objectives, kpis, currentMonth);
+      kpiPerformance = KPIDiff(previousData, objectives, kpis, currentMonth, objectivesWeek, i, remainingDays / diffDays, monthDays / diffDays);
     }
     else {
       titleCell           = objRow.insertCell(-1);
@@ -278,10 +350,12 @@ require(["../config.js"], function(Settings){
 
       var row          = kpiRows[k];
       var diff         = kpiPerformance[kpi.objective];
-      diff             = diff > 0 ? Math.round(diff / remainingDays * diffDays) : 0;
+
+      // Weekly and monthly defined objectives and calculated with distinct methods
+      diff             = diff > 0 ? (kpi.cumulative ? Math.round(diff / remainingDays * diffDays) : Math.round(diff / monthDays * diffDays)) : 0;
 
       if (presentData) {
-        var realized        = getKPIValue(kpi, currentData);
+        var realized        = getKPIValue(kpi, currentData, currentMAU);
         var objective       = diff;
         if (kpi.objective === 'ARTISTCOUNT') realized -= previousData.artistBase;
         if (kpi.objective === 'USERCOUNT')   realized -= previousData.userBase;

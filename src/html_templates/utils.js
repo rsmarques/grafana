@@ -229,6 +229,12 @@ function getMonthNames(){
   return monthNames;
 }
 
+function daysInMonth(date) {
+    var date = new Date(date);
+
+    return new Date(date.getFullYear(), date.getMonth(), 0).getDate();
+}
+
 //Style functions
 function addTimeSpan(str){
   return '<br><span class="timespan">' + str + '</span>';
